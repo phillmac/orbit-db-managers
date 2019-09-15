@@ -1,0 +1,19 @@
+{
+  "name": "orbit-db-managers",
+  "version": "0.0.1",
+  "description": "Peer and store managers for  the OrbitDB distributed peer-to-peer database",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phillmac/orbit-db-managers.git"
+  },
+  "author": "Phillip Mackintosh <phill@peelvalley.com.au>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/phillmac/orbit-db-managers/issues"
+  },
+  "homepage": "https://github.com/phillmac/orbit-db-managers#readme"
+}
