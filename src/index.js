@@ -1,7 +1,7 @@
-const PeerMan = require('./peerMan.js')
-const DBMan = require('./dbMan.js')
+const PeerManager = require('./PeerManager.js')
+const DBManager = require('./DBManager.js')
 
 module.exports = {
-  PeerMan,
-  DBMan
+  PeerManager,
+  DBManager
 }
