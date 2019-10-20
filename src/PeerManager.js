@@ -254,6 +254,7 @@ class PeerManager {
         })
       }
       search.then(peers => {
+        db.events.emit('search.complete', db.address.toString(), mapPeers(peers))
         logger.info(`Finished finding peers for ${db.id}`)
         return peers
       }).catch(err => {
@@ -273,15 +274,17 @@ class PeerManager {
       }
     }
 
+    const mapPeers = (peers) => peers.map(p => {
+      const peer = peersList.get(p)
+      return {
+        id: peer.id.toB58String(),
+        multiaddrs: peer.multiaddrs.toArray().map(m => m.toString())
+      }
+    })
+
     this.getPeers = (db) => {
       if (!(db.id in dbPeers)) return []
-      return dbPeers[db.id].map(p => {
-        const peer = peersList.get(p)
-        return {
-          id: peer.id.toB58String(),
-          multiaddrs: peer.multiaddrs.toArray().map(m => m.toString())
-        }
-      })
+      return mapPeers(dbPeers[db.id])
     }
 
     this.allPeers = () => {
@@ -301,6 +304,7 @@ class PeerManager {
       } else {
         delete dbPeers[db.id]
       }
+      db.events.removeAllListeners('search.complete')
     }
 
     const addPeer = (db, peer) => {
