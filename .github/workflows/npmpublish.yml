@@ -5,41 +5,42 @@ on:
     types: [created]
 
 jobs:
-  build:
+  publish-to-npm-and-gpr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: npm ci
-      - run: npm test
+      
+      # Checkout the repo
+      - uses: actions/checkout@master
+        
+      # Update package version and set up git
+      - uses: actions/setup-node@master
+      - name: Update package version and setup git
+        run: |
+          git config user.name "Actions User"
+          git config user.email noreply@github.com
 
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      # Publish to NPMJS
+      - uses: actions/setup-node@master
         with:
           node-version: 12
-          registry-url: https://registry.npmjs.org/
-      - run: npm ci
-      - run: npm publish
+          registry-url: 'https://registry.npmjs.org/'
+      - name: Publish to NPMJS
+        run: |
+          npm config set //registry.npmjs.org/:_authToken=$NODE_AUTH_TOKEN
+          npm config set scope "<@OWNER>"
+          npm config list
+          npm publish --access public 
         env:
+          CI: true
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
 
-  publish-gpr:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
+      # Publish to GitHub Package Registry
+      - uses: actions/setup-node@master
         with:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
-          scope: '@phillmac'
-      - run: npm ci
-      - run: npm publish
+          scope: '<@OWNER>'
+      - name: Publish to GitHub Package Registry
+        run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
