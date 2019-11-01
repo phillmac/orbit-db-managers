@@ -244,13 +244,21 @@ class PeerManager {
               })
             }
           )
+          db.events.on('closing', function () {
+            reject('DB is closing')
+          })
         })
       } else {
-        search = ipfs.dht.findProvs(db.address.root, opts || {}).then(peers => {
-          for (const peer of peers) {
-            addPeer(db, peer)
-          }
-          return peers
+        search = new Promise((resolve, reject) => {
+          ipfs.dht.findProvs(db.address.root, opts || {}).then(peers => {
+            for (const peer of peers) {
+              addPeer(db, peer)
+            }
+            return peers
+          }).then(peers=>resolve(peers))
+          db.events.on('closing', function () {
+            reject('DB is closing')
+          })
         })
       }
       search.then(peers => {
