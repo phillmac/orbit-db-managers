@@ -244,13 +244,21 @@ class PeerManager {
               })
             }
           )
+          db.events.on('closing', function () {
+            reject('DB is closing')
+          })
         })
       } else {
-        search = ipfs.dht.findProvs(db.address.root, opts || {}).then(peers => {
-          for (const peer of peers) {
-            addPeer(db, peer)
-          }
-          return peers
+        search = new Promise((resolve, reject) => {
+          ipfs.dht.findProvs(db.address.root, opts || {}).then(peers => {
+            for (const peer of peers) {
+              addPeer(db, peer)
+            }
+            return peers
+          }).then(peers=>resolve(peers))
+          db.events.on('closing', function () {
+            reject('DB is closing')
+          })
         })
       }
       search.then(peers => {
@@ -298,10 +306,6 @@ class PeerManager {
 
     this.removeDB = (db) => {
       if (db.id in peerSearches) {
-        peerSearches[db.id].search.then(() => {
-          delete dbPeers[db.id]
-        })
-      } else {
         delete dbPeers[db.id]
       }
       db.events.removeAllListeners('search.complete')
@@ -310,14 +314,18 @@ class PeerManager {
     const addPeer = (db, peer) => {
       if (!PeerInfo.isPeerInfo(peer)) peer = createPeerInfo(peer)
       peersList.put(peer, false)
-      if (!(db.id in dbPeers)) dbPeers[db.id] = []
-      dbPeers[db.id].push(peer.id.toB58String())
+      if (db.id in dbPeers) {
+        dbPeers[db.id].push(peer.id.toB58String())
+      } else {
+        logger.warn(`${db.id} not in dbPeers list`)
+      }
     }
 
     this.attachDB = (db) => {
       db.events.on('peer', async function (peerID) {
         const peer = await swarmFindPeer(peerID)
         logger.debug(`Resolved peer from event ${peer.id.toB58String()}`)
+        dbPeers[db.id] = []
         addPeer(db, peer)
       })
     }
