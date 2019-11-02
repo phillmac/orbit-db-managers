@@ -305,6 +305,7 @@ class PeerManager {
     }
 
     this.removeDB = (db) => {
+      db.events.emit('closing', db.address.toString())
       delete dbPeers[db.id]
       db.events.removeAllListeners('search.complete')
       db.events.removeAllListeners('closing')
