@@ -305,10 +305,10 @@ class PeerManager {
     }
 
     this.removeDB = (db) => {
-      if (db.id in peerSearches) {
-        delete dbPeers[db.id]
-      }
+      delete dbPeers[db.id]
       db.events.removeAllListeners('search.complete')
+      db.events.removeAllListeners('closing')
+      
     }
 
     const addPeer = (db, peer) => {
