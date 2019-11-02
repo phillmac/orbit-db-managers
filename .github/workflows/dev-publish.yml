@@ -29,7 +29,11 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '<@phillmac>'
       - name: Publish to GitHub Package Registry
-        run: npm publish
+        run: |
+          npm config set //npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN
+          npm config set scope "<@OWNER>"
+          npm config list
+          npm publish --access public
         env:
           CI: true
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
