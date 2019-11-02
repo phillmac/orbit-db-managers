@@ -308,7 +308,6 @@ class PeerManager {
       delete dbPeers[db.id]
       db.events.removeAllListeners('search.complete')
       db.events.removeAllListeners('closing')
-      
     }
 
     const addPeer = (db, peer) => {
