@@ -1,4 +1,4 @@
-name: Publish to NPMJS and GPR
+name: Publish develop versions to GPR
 
 on:
   push:
