@@ -6,13 +6,13 @@ on:
       - develop
 
 jobs:
-  publish-to-npm-and-gpr:
+  publish-develop-versions-to-gpr:
     runs-on: ubuntu-latest
     steps:
-      
+
       # Checkout the repo
       - uses: actions/checkout@master
-        
+
       # Update package version and set up git
       - uses: actions/setup-node@master
       - name: Update package version and setup git
@@ -20,7 +20,6 @@ jobs:
           git config user.name "Actions User"
           git config user.email noreply@github.com
           npm version 0.1.1-dev.$(date +%s)
-
 
       # Publish to GitHub Package Registry
       - uses: actions/setup-node@master
