@@ -190,7 +190,7 @@ class PeerManager {
         .then(result => {
           peersList.put(result, false)
           delete peerSearches[peerIDStr]
-          return results
+          return result
         })
         .catch(err => {
           delete peerSearches[peerIDStr]
