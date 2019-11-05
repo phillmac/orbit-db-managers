@@ -11,8 +11,8 @@ class DBManager {
 
     this.events = orbitDB.events
 
-    const pendingOpens = {}
-    const pendingLoads = {}
+    const pendingOpens = []
+    const pendingLoads = []
 
     this.pendingOpens = () => pendingOpens
     this.pendingLoads = () => pendingLoads
