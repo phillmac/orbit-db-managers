@@ -48,7 +48,7 @@ class DBManager {
           awaitLoad = true
         }
 
-        dbOpen = orbitDB.open(dbn, params).catch((err) => {console.warn(`Failed to open ${params}: ${err}`)})
+        let dbOpen = orbitDB.open(dbn, params).catch((err) => {console.warn(`Failed to open ${params}: ${err}`)})
 
         pendingOpens.push(dbn)
         pendingLoads.push(dbn)
