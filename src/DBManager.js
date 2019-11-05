@@ -9,6 +9,12 @@ class DBManager {
       attachDB: function () {}
     }, peerMan)
 
+    const pendingOpens = {}
+    const pendingLoads = {}
+
+    this.pendingOpens = () => pendingOpens
+    this.pendingLoads = () => pendingLoads
+
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
       for (const db of Object.values(orbitDB.stores)) {
@@ -25,10 +31,43 @@ class DBManager {
       if (db) {
         return db
       } else {
-        db = await orbitDB.open(dbn, params)
-        await db.load()
-        if (typeof peerMan.attachDB === 'function') peerMan.attachDB(db)
-        return db
+        let awaitOpen = params.awaitOpen
+        let awaitLoad = params.awaitLoad
+
+        if ('awaitOpen' in params) {
+          delete params.awaitOpen
+        } else  {
+          awaitOpen = true
+        }
+
+        if ('awaitLoad' in params) {
+          delete params.awaitLoad
+        } else {
+          awaitLoad = true
+        }
+
+        dbOpen = orbitDB.open(dbn, params).catch((err) => {console.warn(`Failed to open ${params}: ${err}`)})
+
+        pendingOpens.push(dbn)
+        pendingLoads.push(dbn)
+
+        dbOpen.then((db) => {
+          pendingOpens.pop(dbn)
+          db.events.once('load', () => {
+            if (typeof peerMan.attachDB === 'function') {
+              peerMan.attachDB(db)
+            }
+            pendingLoads.pop(dbn)
+          })
+        })
+
+        if (awaitOpen) {
+          db = await dbOpen
+          if (awaitLoad) {
+            await db.load()
+          }
+          return db
+        }
       }
     }
 
