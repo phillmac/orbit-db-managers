@@ -1,4 +1,4 @@
-name: Publish to NPMJS and GPR
+name: Publish develop versions to GPR
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
       - develop
 
 jobs:
-  publish-to-npm-and-gpr:
+  publish-develop-versions-to-gpr:
     runs-on: ubuntu-latest
     steps:
-      
+
       # Checkout the repo
       - uses: actions/checkout@master
-        
+
       # Update package version and set up git
       - uses: actions/setup-node@master
       - name: Update package version and setup git
@@ -21,19 +21,13 @@ jobs:
           git config user.email noreply@github.com
           npm version 0.1.1-dev.$(date +%s)
 
-
       # Publish to GitHub Package Registry
       - uses: actions/setup-node@master
         with:
           node-version: 12
           registry-url: https://npm.pkg.github.com/
-          scope: '<@phillmac>'
+          scope: '@phillmac'
       - name: Publish to GitHub Package Registry
-        run: |
-          npm config set //npm.pkg.github.com/:_authToken=$NODE_AUTH_TOKEN
-          npm config set scope "@phillmac"
-          npm config list
-          npm publish --access public
+        run: npm publish
         env:
-          CI: true
-          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{github.token}}
