@@ -9,6 +9,8 @@ class DBManager {
       attachDB: function () {}
     }, peerMan)
 
+    this.events = orbitDB.events
+
     const pendingOpens = {}
     const pendingLoads = {}
 
