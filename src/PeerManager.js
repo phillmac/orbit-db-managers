@@ -10,7 +10,7 @@ const MakeQuerablePromise = (promise) => {
   let isFulfilled = false
 
   // Observe the promise, saving the fulfillment in a closure scope.
-  let result = promise.then(
+  const result = promise.then(
     function (v) {
       isFulfilled = true
       isPending = false
@@ -134,7 +134,7 @@ class PeerManager {
       if (peersList.has(peerID)) return result // Short circuit
 
       const resolved = [
-        MakeQuerablePromise(swarmFindPeer(peerID).then(function(peer){
+        MakeQuerablePromise(swarmFindPeer(peerID).then(function (peer) {
           peersList.put(peer, false)
           return peer
         })),
@@ -143,7 +143,7 @@ class PeerManager {
 
       while ((!result) && resolved.some(p => p.isPending())) {
         try {
-        result = await Promise.race(resolved.filter(p => p.isPending()))
+          result = await Promise.race(resolved.filter(p => p.isPending()))
         } catch (err) {
           logger.warn(err)
         }
@@ -162,8 +162,8 @@ class PeerManager {
       if (PeerInfo.isPeerInfo(details)) return details // Short circuit
       let peerInfo
       if (PeerId.isPeerId(details)) return new PeerInfo(details)
-      if (typeof details.ID === 'string' ) {
-        peerInfo =  new PeerInfo(PeerId.createFromB58String(details.ID))
+      if (typeof details.ID === 'string') {
+        peerInfo = new PeerInfo(PeerId.createFromB58String(details.ID))
       } else {
         throw new Error('Unhandled createPeerInfo', details) // Peer id property is something other then 'ID'
       }
@@ -255,7 +255,7 @@ class PeerManager {
               addPeer(db, peer)
             }
             return peers
-          }).then(peers=>resolve(peers))
+          }).then(peers => resolve(peers))
           db.events.on('closing', function () {
             reject('DB is closing')
           })
@@ -267,7 +267,7 @@ class PeerManager {
         return peers
       }).catch(err => {
         logger.warn(`Error while finding peers for ${db.id}`, err)
-      }).finally (() => {
+      }).finally(() => {
         delete peerSearches[db.id]
       })
       peerSearches[db.id] = {
