@@ -245,7 +245,7 @@ class PeerManager {
             }
           )
           db.events.on('closing', function () {
-            reject('DB is closing')
+            reject(new Error('DB is closing'))
           })
         })
       } else {
@@ -257,7 +257,7 @@ class PeerManager {
             return peers
           }).then(peers => resolve(peers))
           db.events.on('closing', function () {
-            reject('DB is closing')
+            reject(new Error('DB is closing'))
           })
         })
       }
