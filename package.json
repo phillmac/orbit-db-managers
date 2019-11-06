@@ -1,6 +1,6 @@
 {
   "name": "orbit-db-managers",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Peer and store managers for  the OrbitDB distributed peer-to-peer database",
   "main": "src/index.js",
   "scripts": {
