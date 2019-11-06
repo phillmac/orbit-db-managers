@@ -328,6 +328,7 @@ class PeerManager {
         logger.debug(`Resolved peer from event ${peer.id.toB58String()}`)
         addPeer(db, peer)
       })
+      logger.debug('Attached db')
     }
   }
 }
