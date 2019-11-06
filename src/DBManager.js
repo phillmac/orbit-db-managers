@@ -28,11 +28,12 @@ class DBManager {
       }
     }
 
-    this.get = async (dbn, params={}) => {
+    this.get = async (dbn, params) => {
       let db = findDB(dbn)
       if (db) {
         return db
       } else {
+        params = Object.assign({}, params)
         let awaitOpen = params.awaitOpen
         let awaitLoad = params.awaitLoad
 
