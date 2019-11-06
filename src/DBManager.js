@@ -28,7 +28,7 @@ class DBManager {
       }
     }
 
-    this.get = async (dbn, params) => {
+    this.get = async (dbn, params={}) => {
       let db = findDB(dbn)
       if (db) {
         return db
