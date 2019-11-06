@@ -56,12 +56,15 @@ class DBManager {
 
         dbOpen.then((db) => {
           pendingOpens.pop(dbn)
-          db.events.once('ready', () => {
+          db.events.once('ready', async () => {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
             }
             pendingReady.pop(dbn)
           })
+          if((!awaitOpen) || (!awaitLoad)) {
+            await db.load()
+          }
         })
 
         if (awaitOpen) {
