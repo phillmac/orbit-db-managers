@@ -12,10 +12,10 @@ class DBManager {
     this.events = orbitDB.events
 
     const pendingOpens = []
-    const pendingLoads = []
+    const pendingReady = []
 
     this.pendingOpens = () => pendingOpens
-    this.pendingLoads = () => pendingLoads
+    this.pendingReady = () => pendingReady
 
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
@@ -52,15 +52,15 @@ class DBManager {
         const dbOpen = orbitDB.open(dbn, params).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
         pendingOpens.push(dbn)
-        pendingLoads.push(dbn)
+        pendingReady.push(dbn)
 
         dbOpen.then((db) => {
           pendingOpens.pop(dbn)
-          db.events.once('load', () => {
+          db.events.once('ready', () => {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
             }
-            pendingLoads.pop(dbn)
+            pendingReady.pop(dbn)
           })
         })
 
@@ -104,7 +104,7 @@ class DBManager {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        loaded: db.id in pendingLoads,
+        ready: db.id in pendingReady,
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
