@@ -68,7 +68,7 @@ class DBManager {
         })
 
         if (awaitOpen) {
-          db = await dbOpen
+         const db = await dbOpen
           if (awaitLoad) {
             await db.load()
           }
