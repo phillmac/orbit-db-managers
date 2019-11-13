@@ -193,8 +193,9 @@ class PeerManager {
           return result
         })
         .catch(err => {
-          delete peerSearches[peerIDStr]
           logger.warn(`Error while resolving addrs for ${peerIDStr}`, err)
+        }).finally(() => {
+          delete peerSearches[peerIDStr]
         })
       peerSearches[peerIDStr] = {
         started: Date.now(),
@@ -261,7 +262,7 @@ class PeerManager {
               addPeer(db, peer)
             }
             return peers
-          }).then(peers => resolve(peers))
+          }).then(peers => resolve(peers)).catch(err => reject(err))
           db.events.on('closing', function () {
             reject(new Error('DB is closing'))
           })
