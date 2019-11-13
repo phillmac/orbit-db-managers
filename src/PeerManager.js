@@ -230,8 +230,7 @@ class PeerManager {
             },
             (err, result) => {
               if (err) reject(err)
-              if(!result) reject(new Error('Empty result from dht/findprovs'))
-              logger.info('result:', result)
+              if(!isDefined(result)) reject(new Error('Empty result from dht/findprovs'))
               let peers = []
               result.on('end', () => resolve(peers))
               result.on('data', chunk => {
