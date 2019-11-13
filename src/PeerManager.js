@@ -229,20 +229,26 @@ class PeerManager {
               args: db.address.root
             },
             (err, result) => {
-              if (err) reject(err)
-              if(!isDefined(result)) reject(new Error('Empty result from dht/findprovs'))
-              let peers = []
-              result.on('end', () => resolve(peers))
-              result.on('data', chunk => {
-                if (chunk.Type === 4) {
-                  const newPeers = chunk.Responses.map(r => createPeerInfo(r))
-                  logger.debug(`Found peers from DHT: ${JSON.stringify(chunk.Responses)}`)
-                  for (const peer of newPeers) {
-                    addPeer(db, peer)
+              if (err) {
+                reject(err)
+              }
+              if(result) {
+                console.dir(result)
+                let peers = []
+                result.on('end', () => resolve(peers))
+                result.on('data', chunk => {
+                  if (chunk.Type === 4) {
+                    const newPeers = chunk.Responses.map(r => createPeerInfo(r))
+                    logger.debug(`Found peers from DHT: ${JSON.stringify(chunk.Responses)}`)
+                    for (const peer of newPeers) {
+                      addPeer(db, peer)
+                    }
+                    peers = peers.concat(newPeers)
                   }
-                  peers = peers.concat(newPeers)
-                }
-              })
+                })
+              } else {
+                reject(new Error('Empty result from dht/findprovs'))
+              }
             }
           )
           db.events.on('closing', function () {
