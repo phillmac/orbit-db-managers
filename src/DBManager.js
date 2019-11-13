@@ -107,7 +107,7 @@ class DBManager {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        ready: db.id in pendingReady,
+        ready: !(db.id in pendingReady),
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
