@@ -224,7 +224,7 @@ class PeerManager {
       ) {
         logger.debug('Using custom findProvs')
         search = new Promise((resolve, reject) => {
-          ipfs.send(
+          const req = ipfs.send(
             {
               path: 'dht/findprovs',
               args: db.address.root
@@ -252,6 +252,7 @@ class PeerManager {
             }
           )
           db.events.on('closing', function () {
+            req.abort()
             reject(new Error('DB is closing'))
           })
         })
