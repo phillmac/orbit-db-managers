@@ -233,7 +233,7 @@ class PeerManager {
               if (err) {
                 reject(err)
               }
-              if(result) {
+              if (result) {
                 let peers = []
                 result.on('end', () => resolve(peers))
                 result.on('data', chunk => {

@@ -29,7 +29,7 @@ class DBManager {
     }
 
     this.get = async (dbn, params) => {
-      let db = findDB(dbn)
+      const db = findDB(dbn)
       if (db) {
         return db
       } else {
@@ -61,14 +61,13 @@ class DBManager {
             }
             pendingReady.pop(dbn)
           })
-          if((!awaitOpen) || (!awaitLoad)) {
+          if ((!awaitOpen) || (!awaitLoad)) {
             await db.load()
           }
         }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
-
         if (awaitOpen) {
-         const db = await dbOpen
+          const db = await dbOpen
           if (awaitLoad) {
             await db.load()
           }
