@@ -88,6 +88,7 @@ class DBManager {
               await db.load()
               pendingLoad.pop(dbn)
             }
+            return db
           }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
           if (awaitOpen) {
