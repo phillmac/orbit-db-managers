@@ -5,7 +5,6 @@ class DBManager {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
     const dbManOptions = Object.assign({}, isDefined(options.dbMan) ? options.dbMan : options)
 
-
     peerMan = Object.assign({
       getPeers: function () {},
       attachDB: function () {}
