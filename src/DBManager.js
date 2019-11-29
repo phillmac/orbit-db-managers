@@ -13,9 +13,12 @@ class DBManager {
 
     const pendingOpens = []
     const pendingReady = []
+    const pendingLoad = []
 
-    this.pendingOpens = () => pendingOpens
-    this.pendingReady = () => pendingReady
+    this.pendingOpens = () => [...pendingOpens]
+    this.pendingReady = () => [...pendingReady]
+    this.pendingLoad = () => [...pendingLoad]
+
 
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
@@ -52,6 +55,7 @@ class DBManager {
         const dbOpen = orbitDB.open(dbn, params)
         pendingOpens.push(dbn)
         pendingReady.push(dbn)
+        pendingLoad.push(dbn)
 
         dbOpen.then(async (db) => {
           pendingOpens.pop(dbn)
@@ -63,6 +67,8 @@ class DBManager {
           })
           if ((!awaitOpen) || (!awaitLoad)) {
             await db.load()
+            pendingLoad.pop(dbn)
+
           }
         }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
@@ -70,6 +76,7 @@ class DBManager {
           const db = await dbOpen
           if (awaitLoad) {
             await db.load()
+            pendingLoad.pop(dbn)
           }
           return db
         }
@@ -107,6 +114,7 @@ class DBManager {
         dbname: db.dbname,
         id: db.id,
         ready: !(db.id in pendingReady),
+        loaded:!(db.id in pendingLoad),
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
