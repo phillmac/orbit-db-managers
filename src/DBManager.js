@@ -3,6 +3,8 @@ const isDefined = (arg) => arg !== undefined && arg !== null
 class DBManager {
   constructor (orbitDB, peerMan, options) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
+    const dbManOptions = Object.assign({}, isDefined(options.dbMan) ? options.dbMan : options)
+
 
     peerMan = Object.assign({
       getPeers: function () {},
@@ -10,12 +12,12 @@ class DBManager {
     }, peerMan)
 
     const logger = Object.assign({
-        debug: function () {},
-        info: function () {},
-        warn: function () {},
-        error: function () {}
-      },
-      options.logger,
+      debug: function () {},
+      info: function () {},
+      warn: function () {},
+      error: function () {}
+    },
+    options.logger,
     dbManOptions.logger
     )
 
@@ -28,7 +30,6 @@ class DBManager {
     this.pendingOpens = () => [...pendingOpens]
     this.pendingReady = () => [...pendingReady]
     this.pendingLoad = () => [...pendingLoad]
-
 
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
@@ -68,9 +69,9 @@ class DBManager {
         })
 
         if (
-          (!( dbn in pendingOpens)) &&
-          (!( dbn in pendingReady)) &&
-          (!( dbn in pendingLoad))
+          (!(dbn in pendingOpens)) &&
+          (!(dbn in pendingReady)) &&
+          (!(dbn in pendingLoad))
         ) {
           pendingOpens.push(dbn)
           pendingReady.push(dbn)
@@ -87,7 +88,6 @@ class DBManager {
             if ((!awaitOpen) || (!awaitLoad)) {
               await db.load()
               pendingLoad.pop(dbn)
-
             }
           }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
@@ -104,8 +104,6 @@ class DBManager {
         }
       }
     }
-
-
 
     this.dbs = () => Object.values(orbitDB.stores)
 
