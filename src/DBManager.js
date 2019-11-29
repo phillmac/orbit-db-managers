@@ -1,13 +1,22 @@
 const isDefined = (arg) => arg !== undefined && arg !== null
 
 class DBManager {
-  constructor (orbitDB, peerMan) {
+  constructor (orbitDB, peerMan, logger) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
 
     peerMan = Object.assign({
       getPeers: function () {},
       attachDB: function () {}
     }, peerMan)
+
+    const logger = Object.assign({
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {}
+      },
+      logger
+    )
 
     this.events = orbitDB.events
 
@@ -52,36 +61,50 @@ class DBManager {
           awaitLoad = true
         }
 
-        const dbOpen = orbitDB.open(dbn, params)
-        pendingOpens.push(dbn)
-        pendingReady.push(dbn)
-        pendingLoad.push(dbn)
+        logger.debug({
+          awaitOpen,
+          awaitLoad
+        })
 
-        dbOpen.then(async (db) => {
-          pendingOpens.pop(dbn)
-          db.events.once('ready', () => {
-            if (typeof peerMan.attachDB === 'function') {
-              peerMan.attachDB(db)
+        if (
+          (!( dbn in pendingOpens)) &&
+          (!( dbn in pendingReady)) &&
+          (!( dbn in pendingLoad))
+        ) {
+          pendingOpens.push(dbn)
+          pendingReady.push(dbn)
+          pendingLoad.push(dbn)
+
+          const dbOpen = orbitDB.open(dbn, params).then(async (db) => {
+            pendingOpens.pop(dbn)
+            db.events.once('ready', () => {
+              if (typeof peerMan.attachDB === 'function') {
+                peerMan.attachDB(db)
+              }
+              pendingReady.pop(dbn)
+            })
+            if ((!awaitOpen) || (!awaitLoad)) {
+              await db.load()
+              pendingLoad.pop(dbn)
+
             }
-            pendingReady.pop(dbn)
-          })
-          if ((!awaitOpen) || (!awaitLoad)) {
-            await db.load()
-            pendingLoad.pop(dbn)
+          }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
 
+          if (awaitOpen) {
+            const db = await dbOpen
+            if (awaitLoad) {
+              await db.load()
+              pendingLoad.pop(dbn)
+            }
+            return db
           }
-        }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
-
-        if (awaitOpen) {
-          const db = await dbOpen
-          if (awaitLoad) {
-            await db.load()
-            pendingLoad.pop(dbn)
-          }
-          return db
+        } else {
+          throw new Error(`Db ${dbn} already pending`)
         }
       }
     }
+
+
 
     this.dbs = () => Object.values(orbitDB.stores)
 
