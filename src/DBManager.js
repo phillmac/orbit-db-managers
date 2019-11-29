@@ -114,7 +114,7 @@ class DBManager {
         dbname: db.dbname,
         id: db.id,
         ready: !(db.id in pendingReady),
-        loaded:!(db.id in pendingLoad),
+        loaded: !(db.id in pendingLoad),
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
