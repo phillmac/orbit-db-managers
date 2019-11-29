@@ -1,7 +1,7 @@
 const isDefined = (arg) => arg !== undefined && arg !== null
 
 class DBManager {
-  constructor (orbitDB, peerMan, logger) {
+  constructor (orbitDB, peerMan, options) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
 
     peerMan = Object.assign({
@@ -15,7 +15,8 @@ class DBManager {
         warn: function () {},
         error: function () {}
       },
-      logger
+      options.logger,
+    dbManOptions.logger
     )
 
     this.events = orbitDB.events
