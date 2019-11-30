@@ -47,6 +47,9 @@ class SessionManager {
   constructor () {
     const sessions = {}
     this.register = (sessionId) => {
+      if (sessionId in sessions) {
+        throw new Error('Session already exists')
+      }
       const session = new Session(sessionId)
       sessions[sessionId] = session
       return session
@@ -56,6 +59,12 @@ class SessionManager {
       if ((sessionId in sessions)) {
         sessions[sessionId].unsubscribeAll()
         delete sessions[sessionId]
+      }
+    }
+
+    this.shutdown = () => {
+      for (const sessionId of Object.keys(sessions)) {
+        this.unregister(sessionId)
       }
     }
 
