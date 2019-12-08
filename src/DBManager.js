@@ -76,7 +76,8 @@ class DBManager {
           pendingReady.push(dbn)
           pendingLoad.push(dbn)
 
-          const dbOpen = orbitDB.open(dbn, params).then(async (db) => {
+          const dbOpen = orbitDB.open(dbn, params)
+          dbOpen.then(async (db) => {
             pendingOpens.pop(dbn)
             db.events.once('ready', () => {
               if (typeof peerMan.attachDB === 'function') {
