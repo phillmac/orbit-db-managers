@@ -68,10 +68,12 @@ class DBManager {
         })
 
         if (
-          (!(dbn in pendingOpens)) &&
-          (!(dbn in pendingReady)) &&
-          (!(dbn in pendingLoad))
+          (pendingOpens.includes(dbn)) ||
+          (pendingReady.includes(dbn)) ||
+          (pendingLoad.includes(dbn))
         ) {
+          throw new Error(`Db ${dbn} already pending`)
+        }
           pendingOpens.push(dbn)
           pendingReady.push(dbn)
           pendingLoad.push(dbn)
@@ -100,9 +102,6 @@ class DBManager {
             }
             return db
           }
-        } else {
-          throw new Error(`Db ${dbn} already pending`)
-        }
       }
     }
 
