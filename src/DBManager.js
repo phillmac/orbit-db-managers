@@ -156,7 +156,7 @@ class DBManager {
           capabilities: db.access.capabilities,
           address: db.access.address
         },
-        replicationStatus: db.replicationStatus(),
+        replicationStatus: db.replicationStatus,
         peers: dbPeers,
         peerCount: dbPeers.length,
         capabilities: Object.keys( // TODO: cleanup this mess once tc39 Object.fromEntries aproved, Nodejs version 12
