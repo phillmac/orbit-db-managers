@@ -40,68 +40,87 @@ class DBManager {
         }
       }
     }
+    const handleWeb3 = (accessController) => {
+      if (isDefined(accessController.Web3)) {
+        if (isDefined(dbManOptions.Web3)) {
+          accessController.Web3 = new dbManOptions.Web3(accessController.Web3)
+        } else {
+          logger.warn('Web3 access controller params ignored')
+          delete accessController.Web3
+        }
+      }
+      return accessController
+    }
+
+    const openCreate = async (dbn, params) => {
+      params = Object.assign({}, params)
+      let awaitOpen = params.awaitOpen
+      let awaitLoad = params.awaitLoad
+
+      if ('awaitOpen' in params) {
+        delete params.awaitOpen
+      } else {
+        awaitOpen = true
+      }
+
+      if ('awaitLoad' in params) {
+        delete params.awaitLoad
+      } else {
+        awaitLoad = true
+      }
+
+      logger.debug({
+        awaitOpen,
+        awaitLoad
+      })
+
+      if (
+        (pendingOpens.includes(dbn)) ||
+        (pendingReady.includes(dbn)) ||
+        (pendingLoad.includes(dbn))
+      ) {
+        throw new Error(`Db ${dbn} already pending`)
+      }
+      pendingOpens.push(dbn)
+      pendingReady.push(dbn)
+      pendingLoad.push(dbn)
+
+      if (isDefined(params.accessController)) {
+        params.accessController = handleWeb3(params.accessController)
+      }
+
+      const dbOpen = orbitDB.open(dbn, params)
+      dbOpen.then(async (db) => {
+        pendingOpens.pop(dbn)
+        db.events.once('ready', () => {
+          if (typeof peerMan.attachDB === 'function') {
+            peerMan.attachDB(db)
+          }
+          pendingReady.pop(dbn)
+        })
+        if ((!awaitOpen) || (!awaitLoad)) {
+          await db.load()
+          pendingLoad.pop(dbn)
+        }
+        return db
+      }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
+
+      if (awaitOpen) {
+        const db = await dbOpen
+        if (awaitLoad) {
+          await db.load()
+          pendingLoad.pop(dbn)
+        }
+        return db
+      }
+    }
 
     this.get = async (dbn, params) => {
       const db = findDB(dbn)
       if (db) {
         return db
       } else {
-        params = Object.assign({}, params)
-        let awaitOpen = params.awaitOpen
-        let awaitLoad = params.awaitLoad
-
-        if ('awaitOpen' in params) {
-          delete params.awaitOpen
-        } else {
-          awaitOpen = true
-        }
-
-        if ('awaitLoad' in params) {
-          delete params.awaitLoad
-        } else {
-          awaitLoad = true
-        }
-
-        logger.debug({
-          awaitOpen,
-          awaitLoad
-        })
-
-        if (
-          (pendingOpens.includes(dbn)) ||
-          (pendingReady.includes(dbn)) ||
-          (pendingLoad.includes(dbn))
-        ) {
-          throw new Error(`Db ${dbn} already pending`)
-        }
-          pendingOpens.push(dbn)
-          pendingReady.push(dbn)
-          pendingLoad.push(dbn)
-
-          const dbOpen = orbitDB.open(dbn, params)
-          dbOpen.then(async (db) => {
-            pendingOpens.pop(dbn)
-            db.events.once('ready', () => {
-              if (typeof peerMan.attachDB === 'function') {
-                peerMan.attachDB(db)
-              }
-              pendingReady.pop(dbn)
-            })
-            if ((!awaitOpen) || (!awaitLoad)) {
-              await db.load()
-              pendingLoad.pop(dbn)
-            }
-            return db
-          }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
-
-          if (awaitOpen) {
-            const db = await dbOpen
-            if (awaitLoad) {
-              await db.load()
-              pendingLoad.pop(dbn)
-            }
-            return db
-          }
+        return openCreate(dbn, params)
       }
     }
 
