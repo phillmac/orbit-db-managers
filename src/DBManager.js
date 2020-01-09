@@ -41,12 +41,12 @@ class DBManager {
       }
     }
     const handleWeb3 = (accessController) => {
-      if (isDefined(accessController.Web3)) {
-        if (isDefined(dbManOptions.Web3)) {
-          accessController.Web3 = new (dbManOptions.Web3 || options.Web3)(accessController.Web3)
+      if (isDefined(accessController.web3)) {
+        if (isDefined(dbManOptions.web3)) {
+          accessController.web3 = new (dbManOptions.Web3 || options.Web3)(accessController.web3)
         } else {
           logger.warn('Web3 access controller params ignored')
-          delete accessController.Web3
+          delete accessController.web3
         }
       }
       return accessController
