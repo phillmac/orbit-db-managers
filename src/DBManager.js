@@ -4,6 +4,7 @@ class DBManager {
   constructor (orbitDB, peerMan, options) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
     const dbManOptions = Object.assign({}, isDefined(options.dbMan) ? options.dbMan : options)
+    const OrbitDB = orbitDB.constructor
 
     peerMan = Object.assign({
       getPeers: function () {},
@@ -74,7 +75,7 @@ class DBManager {
         awaitLoad
       })
 
-    const dbAddr =  orbitDB.isValidAddress(dbn)? orbitDB.parseAddress(dbn): orbitDB.determineAddress(dbn, params.type, params).toString()
+    const dbAddr =  OrbitDB.isValidAddress(dbn)? OrbitDB.parseAddress(dbn): OrbitDB.determineAddress(dbn, params.type, params).toString()
 
       if (
         (pendingOpens.includes(dbAddr)) ||
