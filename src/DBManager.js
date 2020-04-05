@@ -154,8 +154,8 @@ class DBManager {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        ready: !(db.id in pendingReady),
-        loaded: !(db.id in pendingLoad),
+        ready: !(pendingReady.contains(db.id)),
+        loaded: !(pendingLoad.contains(db.id)),
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
