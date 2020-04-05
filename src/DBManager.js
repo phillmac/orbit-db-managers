@@ -74,16 +74,19 @@ class DBManager {
         awaitLoad
       })
 
+    const dbAddr =  orbitDB.isValidAddress(dbn)? dbn: orbitDB.determineAddress(dbn, params.type, params).toString()
+
       if (
-        (pendingOpens.includes(dbn)) ||
-        (pendingReady.includes(dbn)) ||
-        (pendingLoad.includes(dbn))
+        (pendingOpens.includes(dbAddr)) ||
+        (pendingReady.includes(dbAddr)) ||
+        (pendingLoad.includes(dbAddr))
       ) {
-        throw new Error(`Db ${dbn} already pending`)
+        throw new Error(`Db ${dbAddr} already pending`)
       }
-      pendingOpens.push(dbn)
-      pendingReady.push(dbn)
-      pendingLoad.push(dbn)
+
+      pendingOpens.push(dbAddr)
+      pendingReady.push(dbAddr)
+      pendingLoad.push(dbAddr)
 
       if (isDefined(params.accessController)) {
         params.accessController = handleWeb3(params.accessController)
@@ -91,16 +94,16 @@ class DBManager {
 
       const dbOpen = orbitDB.open(dbn, params)
       dbOpen.then(async (db) => {
-        pendingOpens.pop(dbn)
+        pendingOpens.pop(dbAddr)
         db.events.once('ready', () => {
           if (typeof peerMan.attachDB === 'function') {
             peerMan.attachDB(db)
           }
-          pendingReady.pop(dbn)
+          pendingReady.pop(dbAddr)
         })
         if ((!awaitOpen) || (!awaitLoad)) {
           await db.load()
-          pendingLoad.pop(dbn)
+          pendingLoad.pop(dbAddr)
         }
         return db
       }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
@@ -154,8 +157,8 @@ class DBManager {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        ready: !(pendingReady.includes(db.id)),
-        loaded: !(pendingLoad.includes(db.id)),
+        ready: !(pendingReady.includes(db.address.toString())),
+        loaded: !(pendingLoad.includes(db.address.toString())),
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
