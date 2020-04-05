@@ -74,7 +74,7 @@ class DBManager {
         awaitLoad
       })
 
-    const dbAddr =  orbitDB.isValidAddress(dbn)? dbn: orbitDB.determineAddress(dbn, params.type, params).toString()
+    const dbAddr =  orbitDB.isValidAddress(dbn)? orbitDB.parseAddress(dbn): orbitDB.determineAddress(dbn, params.type, params).toString()
 
       if (
         (pendingOpens.includes(dbAddr)) ||
