@@ -160,6 +160,9 @@ class DBManager {
         id: db.id,
         ready: !(pendingReady.includes(db.address.toString())),
         loaded: !(pendingLoad.includes(db.address.toString())),
+        oplog: {
+          length: db.oplog.length,
+        },
         options: {
           create: db.options.create,
           indexBy: db.options.indexBy,
