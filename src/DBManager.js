@@ -36,6 +36,8 @@ class DBManager {
       for (const db of Object.values(orbitDB.stores)) {
         if (dbn === db.dbname) {
           return db
+        } else if (dbn === (dbn == [db.address.root, db.address.path].join('/'))) {
+          return db
         } else if (dbn === db.address.toString()) {
           return db
         }
