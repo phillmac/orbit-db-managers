@@ -121,7 +121,7 @@ class DBManager {
       }
     }
 
-    this.get = async (dbn) => {
+    this.get = (dbn) => {
       const db = findDB(dbn)
       if (db) {
         return db
