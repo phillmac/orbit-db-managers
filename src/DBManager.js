@@ -121,12 +121,12 @@ class DBManager {
       }
     }
 
-    this.get = async (dbn, params) => {
+    this.get = async (dbn) => {
       const db = findDB(dbn)
       if (db) {
         return db
       } else {
-        return openCreate(dbn, params)
+        return null
       }
     }
 
