@@ -55,7 +55,7 @@ class DBManager {
       return accessController
     }
 
-    const openCreate = async (dbn, params) => {
+    this.openCreate = async (dbn, params) => {
       params = Object.assign({}, params)
       let awaitOpen = params.awaitOpen
       let awaitLoad = params.awaitLoad
