@@ -55,6 +55,13 @@ class DBManager {
       return accessController
     }
 
+    function removeItem (array, item) {
+      const index = array.indexOf(item)
+      if (index > -1) {
+        return array.splice(index, 1)
+      }
+    }
+
     this.openCreate = async (dbn, params) => {
       params = Object.assign({}, params)
       let awaitOpen = params.awaitOpen
@@ -77,7 +84,7 @@ class DBManager {
         awaitLoad
       })
 
-      const dbAddr = OrbitDB.isValidAddress(dbn)? OrbitDB.parseAddress(dbn).toString(): (await orbitDB.determineAddress(dbn, params.type, params)).toString()
+      const dbAddr = OrbitDB.isValidAddress(dbn) ? OrbitDB.parseAddress(dbn).toString() : (await orbitDB.determineAddress(dbn, params.type, params)).toString()
 
       if (
         (pendingOpens.includes(dbAddr)) ||
@@ -97,27 +104,37 @@ class DBManager {
 
       const dbOpen = orbitDB.open(dbn, params)
       dbOpen.then(async (db) => {
-        pendingOpens.pop(dbAddr)
+        removeItem(pendingOpens, dbAddr)
         db.events.once('ready', () => {
           if (typeof peerMan.attachDB === 'function') {
             peerMan.attachDB(db)
           }
-          pendingReady.pop(dbAddr)
+          removeItem(pendingReady, dbAddr)
         })
         if ((!awaitOpen) || (!awaitLoad)) {
           await db.load()
-          pendingLoad.pop(dbAddr)
+          removeItem(pendingLoad, dbAddr)
         }
         return db
-      }).catch((err) => { console.warn(`Failed to open ${params}: ${err}`) })
+      }).catch((err) => {
+        console.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
+        pendingOpens.pop(dbAddr)
+        removeItem(pendingOpens, dbAddr)
+        removeItem(pendingReady, dbAddr)
+        removeItem(pendingLoad, dbAddr)
+      })
 
       if (awaitOpen) {
         const db = await dbOpen
-        if (awaitLoad) {
-          await db.load()
-          pendingLoad.pop(dbn)
+        if (db) {
+          if (awaitLoad) {
+            await db.load()
+            pendingLoad.pop(dbn)
+          }
+          return db
+        } else {
+          return new Error('Unable to open db')
         }
-        return db
       }
     }
 
@@ -163,7 +180,7 @@ class DBManager {
         ready: !(pendingReady.includes(db.address.toString())),
         loaded: !(pendingLoad.includes(db.address.toString())),
         oplog: {
-          length: db.oplog.length,
+          length: db.oplog.length
         },
         options: {
           create: db.options.create,
