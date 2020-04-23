@@ -180,7 +180,7 @@ class DBManager {
         ready: !(pendingReady.includes(db.address.toString())),
         loaded: !(pendingLoad.includes(db.address.toString())),
         oplog: {
-          length: db.oplog.length
+          length: db.oplog ? db.oplog.length : 'undefined'
         },
         options: {
           create: db.options.create,
