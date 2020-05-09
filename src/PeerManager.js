@@ -46,8 +46,8 @@ class PeerManager {
     if (!isDefined(options.multiaddr)) {
       throw new Error('options.multiaddr is a required argument.')
     }
-    if (!isDefined(options.PeerBook)) {
-      throw new Error('options.PeerBook is a required argument.')
+    if (!isDefined(options.PeerStore)) {
+      throw new Error('options.PeerStore is a required argument.')
     }
 
     if (typeof options.PeerId !== 'function') {
@@ -61,10 +61,10 @@ class PeerManager {
     }
 
     const peerManOptions = Object.assign({}, isDefined(options.peerMan) ? options.peerMan : options)
-    const PeerBook = options.PeerBook
+    const PeerStore = options.PeerStore
     const dbPeers = {}
     const peerSearches = {}
-    const peersList = typeof PeerBook === 'function' ? new PeerBook() : PeerBook
+    const peersList = typeof PeerStore === 'function' ? new PeerStore() : PeerStore
     const PeerId = options.PeerId
     const PeerInfo = options.PeerInfo
     const multiaddr = options.multiaddr
