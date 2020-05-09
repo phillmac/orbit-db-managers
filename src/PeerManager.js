@@ -166,6 +166,8 @@ class PeerManager {
       if (PeerId.isPeerId(details)) return new PeerInfo(details)
       if (typeof details.ID === 'string') {
         peerInfo = new PeerInfo(PeerId.createFromB58String(details.ID))
+      else if (typeof details.id === 'string') {
+         peerInfo = new PeerInfo(PeerId.createFromB58String(details.id))
       } else {
         throw new Error('Unhandled createPeerInfo', details) // Peer id property is something other then 'ID'
       }
