@@ -35,6 +35,8 @@ const MakeQuerablePromise = (promise) => {
   return result
 }
 
+const getPeerId = (peer) => peer.id.toB58String ? peer.id.toB58String() : peer.id
+
 class PeerManager {
   constructor (ipfs, orbitDB, options = {}) {
     if (!isDefined(options.PeerId)) {
@@ -122,9 +124,7 @@ class PeerManager {
 
     const swarmFindPeer = async (peerIDStr) => {
       for (const peer of await ipfs.swarm.addrs()) {
-        if (peerIDStr.includes(
-          peer.id.toB58String ? peer.id.toB58String() : peer.id
-        )) {
+        if (peerIDStr.includes(getPeerId(peer))) {
           return peer
         }
       }
@@ -308,7 +308,7 @@ class PeerManager {
     this.allPeers = () => {
       return Object.values(peersList.getAll()).map(p => {
         return {
-          id: p.id.toB58String(),
+          id: getPeerId(p),
           multiaddrs: p.multiaddrs.toArray().map(m => m.toString())
         }
       })
@@ -325,7 +325,7 @@ class PeerManager {
       if (!PeerInfo.isPeerInfo(peer)) peer = createPeerInfo(peer)
       peersList.put(peer, false)
       if (db.id in dbPeers) {
-        dbPeers[db.id].push(peer.id.toB58String())
+        dbPeers[db.id].push(getPeerId(peer))
       } else {
         logger.warn(`${db.id} not in dbPeers list`)
       }
@@ -335,7 +335,7 @@ class PeerManager {
       dbPeers[db.id] = []
       db.events.on('peer', async function (peerID) {
         const peer = await swarmFindPeer(peerID)
-        logger.debug(`Resolved peer from event ${peer.id.toB58String()}`)
+        logger.debug(`Resolved peer from event ${getPeerId(peer)}`)
         addPeer(db, peer)
       })
       logger.debug('Attached db')
