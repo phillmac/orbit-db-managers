@@ -122,7 +122,9 @@ class PeerManager {
 
     const swarmFindPeer = async (peerIDStr) => {
       for (const peer of await ipfs.swarm.addrs()) {
-        if (peerIDStr.includes(peer.id.toB58String())) {
+        if (peerIDStr.includes(
+          peer.id.toB58String ? peer.id.toB58String() : peer.id
+        )) {
           return peer
         }
       }
