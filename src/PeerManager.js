@@ -227,7 +227,7 @@ class PeerManager {
       ) {
         logger.debug('Using custom findProvs')
         search = new Promise((resolve, reject) => {
-          db.events.on('closing', function () {
+          db.events.once('closing', function () {
             req.abort()
             reject(new Error('DB is closing'))
           })
@@ -261,7 +261,7 @@ class PeerManager {
         })
       } else {
         search = new Promise((resolve, reject) => {
-          db.events.on('closing', function () {
+          db.events.once('closing', function () {
             reject(new Error('DB is closing'))
           })
           (async () => {
