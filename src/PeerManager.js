@@ -212,7 +212,6 @@ class PeerManager {
     }
 
     this.findPeers = (db, opts = {}) => {
-      console.dir(db.events)
       let search
       if (db.id in peerSearches) {
         return {
