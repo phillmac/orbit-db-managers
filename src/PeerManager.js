@@ -212,6 +212,7 @@ class PeerManager {
     }
 
     this.findPeers = (db, opts = {}) => {
+      console.dir(db.events)
       let search
       if (db.id in peerSearches) {
         return {
@@ -264,7 +265,7 @@ class PeerManager {
           db.events.once('closing', function () {
             reject(new Error('DB is closing'))
           })
-          (async () => {
+          const doSearch = async () => {
             try {
               const findProvs = ipfs.dht.findProvs(db.address.root, opts || {})
               if (typeof findProvs[Symbol.asyncIterator] === 'function') {
@@ -285,7 +286,8 @@ class PeerManager {
             } catch (err) {
               reject(err)
             }
-          })()
+          }
+          doSearch()
         })
       }
       search.then(peers => {
