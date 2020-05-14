@@ -219,6 +219,7 @@ class DBManager {
             inc: typeof db.inc === 'function',
             iterator: typeof db.iterator === 'function',
             put: typeof db.put === 'function',
+            putAll: typeof db.putAll === 'function',
             query: typeof db.query === 'function',
             remove: typeof (db.del || db.remove) === 'function',
             value: typeof db.value === 'number'
