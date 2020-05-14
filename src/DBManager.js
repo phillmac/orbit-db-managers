@@ -170,6 +170,7 @@ class DBManager {
     this.dbWrite = dbWrite
 
     const canAppend = (writeList) => {
+      if (writeList === 'undefined' || typeof writeList === 'undefined') return 'undefined'
       if (orbitDB.identity.id in writeList) return true
       if (typeof writeList.has === 'function' && writeList.has(orbitDB.identity.id)) return true
       if (typeof writeList.includes === 'function' && writeList.includes(orbitDB.identity.id)) return true
