@@ -119,8 +119,7 @@ class PeerManager {
 
     this.searchDetails = searchDetails
 
-    this.getSearches = () =>
-      Object.keys(peerSearches).map(k => searchDetails(k))
+    this.getSearches = () => Object.keys(peerSearches).map(k => searchDetails(k))
 
     const swarmFindPeer = async (peerIDStr) => {
       for (const peer of await ipfs.swarm.addrs()) {
@@ -228,6 +227,10 @@ class PeerManager {
       ) {
         logger.debug('Using custom findProvs')
         search = new Promise((resolve, reject) => {
+          db.events.on('closing', function () {
+            req.abort()
+            reject(new Error('DB is closing'))
+          })
           const req = ipfs.send(
             {
               path: 'dht/findprovs',
@@ -255,22 +258,34 @@ class PeerManager {
               }
             }
           )
-          db.events.on('closing', function () {
-            req.abort()
-            reject(new Error('DB is closing'))
-          })
         })
       } else {
         search = new Promise((resolve, reject) => {
-          ipfs.dht.findProvs(db.address.root, opts || {}).then(peers => {
-            for (const peer of peers) {
-              addPeer(db, peer)
-            }
-            return peers
-          }).then(peers => resolve(peers)).catch(err => reject(err))
           db.events.on('closing', function () {
             reject(new Error('DB is closing'))
           })
+          (async () => {
+            try {
+              const findProvs = ipfs.dht.findProvs(db.address.root, opts || {})
+              if (typeof findProvs[Symbol.asyncIterator] === 'function') {
+                const peers = []
+                for await (let peer of findProvs) {
+                  peer = addPeer(db, peer)
+                  peers.push()
+                }
+                resolve(peers)
+              } else {
+                const peers = []
+                for (let peer of await findProvs) {
+                  peer = addPeer(db, peer)
+                  peers.push(peer)
+                }
+                resolve(peers)
+              }
+            } catch (err) {
+              reject(err)
+            }
+          })()
         })
       }
       search.then(peers => {
@@ -297,7 +312,7 @@ class PeerManager {
     const mapPeers = (peers) => peers.map(p => {
       const peer = peersList.get(p)
       return {
-        id: peer.id.toB58String(),
+        id: getPeerId(p),
         multiaddrs: peer.multiaddrs.toArray().map(m => m.toString())
       }
     })
@@ -331,6 +346,7 @@ class PeerManager {
       } else {
         logger.warn(`${db.id} not in dbPeers list`)
       }
+      return peer
     }
 
     this.attachDB = (db) => {
