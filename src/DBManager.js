@@ -1,5 +1,12 @@
 const isDefined = (arg) => arg !== undefined && arg !== null
 
+function removeItem (array, item) {
+  const index = array.indexOf(item)
+  if (index > -1) {
+    return array.splice(index, 1)
+  }
+}
+
 class DBManager {
   constructor (orbitDB, peerMan, options) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
@@ -43,6 +50,7 @@ class DBManager {
         }
       }
     }
+
     const handleWeb3 = (accessController) => {
       if (isDefined(accessController.web3)) {
         if (isDefined(dbManOptions.web3)) {
@@ -53,13 +61,6 @@ class DBManager {
         }
       }
       return accessController
-    }
-
-    function removeItem (array, item) {
-      const index = array.indexOf(item)
-      if (index > -1) {
-        return array.splice(index, 1)
-      }
     }
 
     this.openCreate = async (dbn, params) => {
@@ -102,40 +103,46 @@ class DBManager {
         params.accessController = handleWeb3(params.accessController)
       }
 
-      const dbOpen = orbitDB.open(dbn, params)
-      dbOpen.then(async (db) => {
-        removeItem(pendingOpens, dbAddr)
-        db.events.once('ready', () => {
-          if (typeof peerMan.attachDB === 'function') {
-            peerMan.attachDB(db)
-          }
-          removeItem(pendingReady, dbAddr)
-        })
-        if ((!awaitOpen) || (!awaitLoad)) {
-          await db.load()
-          removeItem(pendingLoad, dbAddr)
-        }
-        return db
-      }).catch((err) => {
+      const errorHandler = (err) => {
         console.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
-        pendingOpens.pop(dbAddr)
         removeItem(pendingOpens, dbAddr)
         removeItem(pendingReady, dbAddr)
         removeItem(pendingLoad, dbAddr)
-      })
+      }
 
-      if (awaitOpen) {
-        const db = await dbOpen
-        if (db) {
-          if (awaitLoad) {
-            await db.load()
-            pendingLoad.pop(dbn)
-          }
-          return db
-        } else {
-          return new Error('Unable to open db')
+      const dbOpen = orbitDB.open(dbn, params)
+
+      const ensureLoad = async () => {
+        try {
+          const db = await dbOpen
+          db.events.once('load', () => removeItem(pendingLoad, dbAddr))
+          db.events.once('ready', () => {
+            if (typeof peerMan.attachDB === 'function') {
+              peerMan.attachDB(db)
+            }
+            removeItem(pendingReady, dbAddr)
+          })
+          await db.load()
+        } catch (err) {
+          errorHandler(err)
         }
       }
+
+      if (awaitOpen) {
+        try {
+          const db = await dbOpen
+          removeItem(pendingOpens, dbAddr)
+          const doLoad = ensureLoad()
+          if (awaitLoad) await doLoad
+          return db
+        } catch (err) {
+          errorHandler(err)
+        }
+      } else {
+        ensureLoad()
+      }
+
+      return { address: dbAddr }
     }
 
     this.get = (dbn) => {
