@@ -181,6 +181,7 @@ class DBManager {
       if (!db) return {}
       const write = dbWrite(db)
       const dbPeers = (typeof peerMan.getPeers === 'function' && peerMan.getPeers(db)) || []
+      const oplog = db.oplog || db._oplog
       return {
         address: db.address,
         dbname: db.dbname,
@@ -188,7 +189,7 @@ class DBManager {
         ready: !(pendingReady.includes(db.address.toString())),
         loaded: !(pendingLoad.includes(db.address.toString())),
         oplog: {
-          length: db.oplog ? db.oplog.length : 'undefined'
+          length: oplog ? oplog.length : 'undefined'
         },
         options: {
           create: db.options.create,
