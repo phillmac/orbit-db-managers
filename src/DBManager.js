@@ -142,7 +142,7 @@ class DBManager {
         ensureLoad()
       }
 
-      return { type: params.type, address: dbAddr }
+      return { type: params.type, address: OrbitDB.parseAddress(dbAddr) }
     }
 
     this.get = (dbn) => {
