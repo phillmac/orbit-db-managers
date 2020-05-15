@@ -116,7 +116,6 @@ class DBManager {
         logger.debug('ensureLoad()')
         try {
           const db = await dbOpen
-          db.events.once('load', () => removeItem(pendingLoad, dbAddr))
           db.events.once('ready', () => {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
@@ -125,6 +124,7 @@ class DBManager {
           })
           logger.debug('db.load()')
           await db.load()
+          removeItem(pendingLoad, dbAddr)
         } catch (err) {
           errorHandler(err)
         }
