@@ -142,7 +142,7 @@ class DBManager {
         ensureLoad()
       }
 
-      return { address: dbAddr }
+      return { type: params.type, address: dbAddr }
     }
 
     this.get = (dbn) => {
