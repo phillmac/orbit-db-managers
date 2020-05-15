@@ -225,7 +225,8 @@ class PeerManager {
         return {
           isNew: false,
           details: searchDetails(hash),
-          search: peerSearches[hash].search
+          search: peerSearches[hash].search,
+          events:peerSearches[hash].events
         }
       }
       const searchEvents = new options.EventEmitter()
