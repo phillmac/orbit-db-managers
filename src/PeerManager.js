@@ -52,6 +52,10 @@ class PeerManager {
       throw new Error('options.PeerStore is a required argument.')
     }
 
+    if (!isDefined(options.EventEmitter)) {
+      throw new Error('options.EventEmitter is a required argument.')
+    }
+
     if (typeof options.PeerId !== 'function') {
       throw new Error('options.PeerId must be callable')
     }
@@ -60,6 +64,9 @@ class PeerManager {
     }
     if (typeof options.multiaddr !== 'function') {
       throw new Error('options.multiaddr must be callable')
+    }
+    if (typeof options.EventEmitter !== 'function') {
+      throw new Error('options.EventEmitter must be callable')
     }
 
     const peerManOptions = Object.assign({}, isDefined(options.peerMan) ? options.peerMan : options)
@@ -179,6 +186,8 @@ class PeerManager {
       return peerInfo
     }
 
+    this.createPeerInfo = createPeerInfo
+
     const dhtFindPeer = (peerIDStr) => {
       if (peerIDStr in peerSearches) {
         return {
@@ -211,6 +220,58 @@ class PeerManager {
       }
     }
 
+    this.dhtFindProvs = (hash, opts = {}) => {
+      if (hash in peerSearches) {
+        return {
+          isNew: false,
+          details: searchDetails(hash),
+          search: peerSearches[hash].search
+        }
+      }
+      const searchEvents = new options.EventEmitter()
+      const search = new Promise((resolve, reject) => {
+        searchEvents.on('abort', () => reject(new Error('Search aborted')))
+        const doSearch = async () => {
+          try {
+            const findProvs = ipfs.dht.findProvs(hash, opts || {})
+            const peers = []
+            const handlePeer = (p) => {
+              const peer = createPeerInfo(p)
+              peers.push(peer)
+              searchEvents.emit('peer', peer)
+            }
+            if (typeof findProvs[Symbol.asyncIterator] === 'function') {
+              for await (const p of findProvs) {
+                handlePeer(p)
+              }
+              resolve(peers)
+            } else {
+              for (const p of await findProvs) {
+                handlePeer(p)
+              }
+              resolve(peers)
+            }
+          } catch (err) {
+            reject(err)
+          }
+        }
+        doSearch()
+      })
+      search.finally(() => delete peerSearches[hash])
+      peerSearches[hash] = {
+        started: Date.now(),
+        options: opts,
+        search,
+        events: searchEvents
+      }
+      return {
+        isNew: true,
+        details: searchDetails(hash),
+        search,
+        events: searchEvents
+      }
+    }
+
     this.findPeers = (db, opts = {}) => {
       let search
       if (db.id in peerSearches) {
@@ -221,72 +282,22 @@ class PeerManager {
         }
       }
       logger.info(`Finding peers for ${db.id}`)
-      if (
-        typeof ipfs.send === 'function' &&
-                ((peerManOptions && peerManOptions.useCustomFindProvs) || (opts && opts.useCustomFindProvs))
-      ) {
+      const customFindProvs = opts.CustomFindProvs || peerManOptions.CustomFindProvs
+      if (customFindProvs) {
         logger.debug('Using custom findProvs')
-        search = new Promise((resolve, reject) => {
-          db.events.once('closing', function () {
-            req.abort()
-            reject(new Error('DB is closing'))
-          })
-          const req = ipfs.send(
-            {
-              path: 'dht/findprovs',
-              args: db.address.root
-            },
-            (err, result) => {
-              if (err) {
-                reject(err)
-              }
-              if (result) {
-                let peers = []
-                result.on('end', () => resolve(peers))
-                result.on('data', chunk => {
-                  if (chunk.Type === 4) {
-                    const newPeers = chunk.Responses.map(r => createPeerInfo(r))
-                    logger.debug(`Found peers from DHT: ${JSON.stringify(chunk.Responses)}`)
-                    for (const peer of newPeers) {
-                      addPeer(db, peer)
-                    }
-                    peers = peers.concat(newPeers)
-                  }
-                })
-              } else {
-                reject(new Error('Empty result from dht/findprovs'))
-              }
-            }
-          )
-        })
+        search = customFindProvs(db)
       } else {
         search = new Promise((resolve, reject) => {
-          db.events.once('closing', function () {
+          const findProvs = this.dhtFindProvs(db.address.root)
+          const foundPeers = []
+          findProvs.events.on('peer', peer => {
+            foundPeers.push(addPeer(db, peer))
+          })
+          db.events.once('closing', () => {
+            findProvs.events.emit('abort')
             reject(new Error('DB is closing'))
           })
-          const doSearch = async () => {
-            try {
-              const findProvs = ipfs.dht.findProvs(db.address.root, opts || {})
-              if (typeof findProvs[Symbol.asyncIterator] === 'function') {
-                const peers = []
-                for await (let peer of findProvs) {
-                  peer = addPeer(db, peer)
-                  peers.push()
-                }
-                resolve(peers)
-              } else {
-                const peers = []
-                for (let peer of await findProvs) {
-                  peer = addPeer(db, peer)
-                  peers.push(peer)
-                }
-                resolve(peers)
-              }
-            } catch (err) {
-              reject(err)
-            }
-          }
-          doSearch()
+          findProvs.then(() => resolve(foundPeers), (err) => reject(err))
         })
       }
       search.then(peers => {
@@ -295,9 +306,7 @@ class PeerManager {
         return peers
       }).catch(err => {
         logger.warn(`Error while finding peers for ${db.id}`, err)
-      }).finally(() => {
-        delete peerSearches[db.id]
-      })
+      }).finally(() => delete peerSearches[db.id])
       peerSearches[db.id] = {
         started: Date.now(),
         options: opts,
@@ -349,6 +358,8 @@ class PeerManager {
       }
       return peer
     }
+
+    this.addPeer = addPeer
 
     this.attachDB = (db) => {
       dbPeers[db.id] = []
