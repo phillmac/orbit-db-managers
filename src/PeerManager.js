@@ -298,7 +298,7 @@ class PeerManager {
             findProvs.events.emit('abort')
             reject(new Error('DB is closing'))
           })
-          findProvs.then(() => resolve(foundPeers), (err) => reject(err))
+          findProvs.search.then(() => resolve(foundPeers), (err) => reject(err))
         })
       }
       search.then(peers => {
