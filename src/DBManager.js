@@ -113,6 +113,7 @@ class DBManager {
       const dbOpen = orbitDB.open(dbn, params)
 
       const ensureLoad = async () => {
+        logger.debug('ensureLoad()')
         try {
           const db = await dbOpen
           db.events.once('load', () => removeItem(pendingLoad, dbAddr))
@@ -122,6 +123,7 @@ class DBManager {
             }
             removeItem(pendingReady, dbAddr)
           })
+          logger.debug('db.load()')
           await db.load()
         } catch (err) {
           errorHandler(err)
