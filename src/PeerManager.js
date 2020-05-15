@@ -226,7 +226,7 @@ class PeerManager {
           isNew: false,
           details: searchDetails(hash),
           search: peerSearches[hash].search,
-          events:peerSearches[hash].events
+          events: peerSearches[hash].events
         }
       }
       const searchEvents = new options.EventEmitter()
@@ -294,10 +294,12 @@ class PeerManager {
           findProvs.events.on('peer', peer => {
             foundPeers.push(addPeer(db, peer))
           })
-          db.events.once('closing', () => {
-            findProvs.events.emit('abort')
-            reject(new Error('DB is closing'))
-          })
+          if (db.events) {
+            db.events.once('closing', () => {
+              findProvs.events.emit('abort')
+              reject(new Error('DB is closing'))
+            })
+          }
           findProvs.search.then(() => resolve(foundPeers), (err) => reject(err))
         })
       }
