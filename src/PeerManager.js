@@ -229,6 +229,7 @@ class PeerManager {
           events: peerSearches[hash].events
         }
       }
+      logger.info(`Finding peers for ${hash}`)
       const searchEvents = new options.EventEmitter()
       const search = new Promise((resolve, reject) => {
         searchEvents.on('abort', () => reject(new Error('Search aborted')))
