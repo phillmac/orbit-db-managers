@@ -85,8 +85,8 @@ class DBManager {
         awaitLoad
       })
 
-      const dbAddr = OrbitDB.isValidAddress(dbn) ? OrbitDB.parseAddress(dbn).toString() : (await orbitDB.determineAddress(dbn, params.type, params)).toString()
-
+      const dbAddr = OrbitDB.isValidAddress(dbn) ? OrbitDB.parseAddress(dbn) : (await orbitDB.determineAddress(dbn, params.type, params))
+      const dbID = dbAddr.toString()
       if (
         (pendingOpens.includes(dbAddr)) ||
         (pendingReady.includes(dbAddr)) ||
@@ -144,7 +144,14 @@ class DBManager {
         ensureLoad()
       }
 
-      return { type: params.type, address: OrbitDB.parseAddress(dbAddr) }
+
+      return { 
+
+          address: dbAddr,
+          id: dbID,
+          name: params.name,
+          type: params.type
+         }
     }
 
     this.get = (dbn) => {
