@@ -35,8 +35,6 @@ const MakeQuerablePromise = (promise) => {
   return result
 }
 
-const getPeerId = (peer) => peer.id.toB58String ? peer.id.toB58String() : peer.id
-
 class PeerManager {
   constructor (ipfs, orbitDB, options = {}) {
     if (!isDefined(options.PeerId)) {
@@ -87,6 +85,16 @@ class PeerManager {
     options.logger,
     peerManOptions.logger
     )
+
+    const getPeerId = (peer) => peer.id.toB58String ? peer.id.toB58String() : peer.id
+    const getPeerAddrs = (peer) => {
+      if (peer.multiaddrs) {
+        return peer.multiaddrs.toArray()
+      }
+      if (peer.addrs) return peer.addrs
+      logger.warn(`Unkown peer addrs ${peer}`)
+      return []
+    }
 
     const announceDBs = async () => {
       logger.info('Announcing DBs')
@@ -327,7 +335,7 @@ class PeerManager {
       const peer = peersList.get(p)
       return {
         id: getPeerId(p),
-        multiaddrs: peer.multiaddrs.toArray().map(m => m.toString())
+        multiaddrs: getPeerAddrs(peer).map(m => m.toString())
       }
     })
 
