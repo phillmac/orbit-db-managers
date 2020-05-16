@@ -195,7 +195,7 @@ class DBManager {
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
-        options: {
+        options: db.options ? {
           create: db.options.create,
           indexBy: db.options.indexBy,
           localOnly: db.options.localOnly,
@@ -203,7 +203,7 @@ class DBManager {
           overwrite: db.options.overwrite,
           path: db.options.path,
           replicate: db.options.replicate
-        },
+        } : {},
         canAppend: canAppend(write),
         type: db.type,
         uid: db.uid,
