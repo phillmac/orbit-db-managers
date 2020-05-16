@@ -161,12 +161,11 @@ class DBManager {
     this.dbList = () => Object.values(orbitDB.stores).map((db) => dbInfo(db))
 
     const dbWrite = (db) => {
-      return (
+      return db.access && (
         (typeof db.access.write !== 'undefined' && db.access.write) ||
         (typeof db.access.get === 'function' && db.access.get('write')) ||
-        (typeof db.access._options === 'object' && db.access._options.write) ||
-        'undefined'
-      )
+        (typeof db.access._options === 'object' && db.access._options.write)
+      ) || 'undefined'
     }
 
     this.dbWrite = dbWrite
