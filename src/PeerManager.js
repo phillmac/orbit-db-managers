@@ -161,7 +161,7 @@ class PeerManager {
 
       const resolved = [
         MakeQuerablePromise(swarmFindPeer(peerID).then(function (peer) {
-          peersList.put(peer, false)
+          peersList.put(peer)
           return peer
         })),
         MakeQuerablePromise(dhtFindPeer(peerID).search)
@@ -218,7 +218,7 @@ class PeerManager {
       const search = ipfs.dht
         .findPeer(peerIDStr)
         .then(result => {
-          peersList.put(result, false)
+          peersList.put(result)
           delete peerSearches[peerIDStr]
           return result
         })
@@ -323,7 +323,7 @@ class PeerManager {
         })
       }
       search.then(peers => {
-        if(db.events) {
+        if (db.events) {
           db.events.emit('search.complete', db.address.toString(), mapPeers(peers))
         }
         logger.info(`Finished finding peers for ${db.id}`)
@@ -376,19 +376,16 @@ class PeerManager {
 
     const addPeer = (db, peer) => {
       if (!PeerInfo.isPeerInfo(peer)) peer = createPeerInfo(peer)
-      peersList.put(peer, false)
-      if (db.id in dbPeers) {
-        dbPeers[db.id].push(getPeerId(peer))
-      } else {
-        logger.warn(`${db.id} not in dbPeers list`)
-      }
+      peersList.put(peer)
+      if (!dbPeers.includes(db.id)) dbPeers[db.id] = []
+      dbPeers[db.id].push(getPeerId(peer))
       return peer
     }
 
     this.addPeer = addPeer
 
     this.attachDB = (db) => {
-      dbPeers[db.id] = []
+      if (!dbPeers.includes(db.id)) dbPeers[db.id] = []
       db.events.on('peer', async function (peerID) {
         const peer = await swarmFindPeer(peerID)
         logger.debug(`Resolved peer from event ${getPeerId(peer)}`)
