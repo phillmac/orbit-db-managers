@@ -144,14 +144,13 @@ class DBManager {
         ensureLoad()
       }
 
+      return {
 
-      return { 
-
-          address: dbAddr,
-          id: dbID,
-          name: params.name,
-          type: params.type
-         }
+        address: dbAddr,
+        id: dbID,
+        name: params.name,
+        type: params.type
+      }
     }
 
     this.get = (dbn) => {
