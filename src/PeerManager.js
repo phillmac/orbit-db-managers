@@ -377,7 +377,7 @@ class PeerManager {
     const addPeer = (db, peer) => {
       if (!PeerInfo.isPeerInfo(peer)) peer = createPeerInfo(peer)
       peersList.put(peer)
-      if (!dbPeers.includes(db.id)) dbPeers[db.id] = []
+      if (!(db.id in dbPeers)) dbPeers[db.id] = []
       dbPeers[db.id].push(getPeerId(peer))
       return peer
     }
@@ -385,7 +385,7 @@ class PeerManager {
     this.addPeer = addPeer
 
     this.attachDB = (db) => {
-      if (!dbPeers.includes(db.id)) dbPeers[db.id] = []
+      if (!(db.id in dbPeers)) dbPeers[db.id] = []
       db.events.on('peer', async function (peerID) {
         const peer = await swarmFindPeer(peerID)
         logger.debug(`Resolved peer from event ${getPeerId(peer)}`)
