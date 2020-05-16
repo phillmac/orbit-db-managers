@@ -195,9 +195,9 @@ class PeerManager {
       } else {
         throw new Error('Unhandled createPeerInfo', details) // Peer id property is something other then 'ID'
       }
-
-      if (isDefined(details.Addrs)) {
-        for (const addr of details.Addrs) {
+      const peerAddrs = details.Addrs || details.addrs
+      if (isDefined(peerAddrs)) {
+        for (const addr of peerAddrs) {
           peerInfo.multiaddrs.add(multiaddr(addr))
         }
       }
