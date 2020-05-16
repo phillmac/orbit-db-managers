@@ -323,7 +323,9 @@ class PeerManager {
         })
       }
       search.then(peers => {
-        db.events.emit('search.complete', db.address.toString(), mapPeers(peers))
+        if(db.events) {
+          db.events.emit('search.complete', db.address.toString(), mapPeers(peers))
+        }
         logger.info(`Finished finding peers for ${db.id}`)
         return peers
       }).catch(err => {
