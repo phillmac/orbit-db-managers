@@ -259,6 +259,7 @@ class PeerManager {
               const peer = createPeerInfo(p)
               peers.push(peer)
               searchEvents.emit('peer', peer)
+              console.dir(p)
             }
             if (typeof findProvs[Symbol.asyncIterator] === 'function') {
               for await (const p of findProvs) {
