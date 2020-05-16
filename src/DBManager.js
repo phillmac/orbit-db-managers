@@ -203,17 +203,17 @@ class DBManager {
           overwrite: db.options.overwrite,
           path: db.options.path,
           replicate: db.options.replicate
-        } : {},
+        } : 'undefined',
         canAppend: canAppend(write),
         type: db.type,
         uid: db.uid,
-        indexLength: db.index ? (db.index.length || Object.keys(db.index).length) : 0,
-        accessController: db.accessController ? {
+        indexLength: db.index ? (db.index.length || Object.keys(db.index).length) : 'undefined',
+        accessController: db.access ? {
           type: db.access.type || 'custom',
           write: write,
           capabilities: db.access.capabilities,
           address: db.access.address
-        } : {},
+        } : 'undefined',
         replicationStatus: db.replicationStatus,
         peers: dbPeers,
         peerCount: dbPeers.length,
