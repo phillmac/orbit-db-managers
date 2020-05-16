@@ -208,12 +208,12 @@ class DBManager {
         type: db.type,
         uid: db.uid,
         indexLength: db.index ? (db.index.length || Object.keys(db.index).length) : 0,
-        accessController: {
+        accessController: db.accessController ? {
           type: db.access.type || 'custom',
           write: write,
           capabilities: db.access.capabilities,
           address: db.access.address
-        },
+        } : {},
         replicationStatus: db.replicationStatus,
         peers: dbPeers,
         peerCount: dbPeers.length,
