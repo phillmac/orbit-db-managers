@@ -332,12 +332,14 @@ class PeerManager {
     }
 
     const mapPeers = (peers) => peers.map(p => {
-      const peer = peersList.get(p)
-      return {
-        id: getPeerId(p),
-        multiaddrs: getPeerAddrs(peer).map(m => m.toString())
+      const peer = peersList.get(getPeerId(p))
+      if (peer) {
+        return {
+          id: getPeerId(peer),
+          multiaddrs: getPeerAddrs(peer).map(m => m.toString())
+        }
       }
-    })
+    }).filter(p => isDefined(p))
 
     this.getPeers = (db) => {
       if (!(db.id in dbPeers)) return []
