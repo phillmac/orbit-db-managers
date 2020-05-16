@@ -86,7 +86,17 @@ class PeerManager {
     peerManOptions.logger
     )
 
-    const getPeerId = (peer) => peer.id.toB58String ? peer.id.toB58String() : peer.id
+    const getPeerId = (peer) => {
+      if (typeof peer === 'string') return peer
+      const peerID = peer.id || peer.ID
+      if (isDefined(peerID)) {
+        if (typeof peerID === 'string') return peerID
+        if (typeof peerID.toB58String === 'function') return peerID.toB58String()
+      }
+      logger.warn(`Unkown peer id ${peer}`)
+      return ''
+    }
+
     const getPeerAddrs = (peer) => {
       if (peer.multiaddrs) {
         return peer.multiaddrs.toArray()
