@@ -104,7 +104,7 @@ class DBManager {
       }
 
       const errorHandler = (err) => {
-        console.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
+        logger.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
         removeItem(pendingOpens, dbID)
         removeItem(pendingReady, dbID)
         removeItem(pendingLoad, dbID)
