@@ -203,7 +203,7 @@ class DBManager {
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
-        replicationQueue: replicator? replicator._queue : 'undefined',
+        replicationQueue: replicator ? replicator._queue : 'undefined',
         options: db.options ? {
           create: db.options.create,
           indexBy: db.options.indexBy,
