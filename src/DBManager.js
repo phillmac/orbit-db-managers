@@ -88,16 +88,16 @@ class DBManager {
       const dbAddr = OrbitDB.isValidAddress(dbn) ? OrbitDB.parseAddress(dbn) : (await orbitDB.determineAddress(dbn, params.type, params))
       const dbID = dbAddr.toString()
       if (
-        (pendingOpens.includes(dbAddr)) ||
-        (pendingReady.includes(dbAddr)) ||
-        (pendingLoad.includes(dbAddr))
+        (pendingOpens.includes(dbID)) ||
+        (pendingReady.includes(dbID)) ||
+        (pendingLoad.includes(dbID))
       ) {
-        throw new Error(`Db ${dbAddr} already pending`)
+        throw new Error(`Db ${dbID} already pending`)
       }
 
-      pendingOpens.push(dbAddr)
-      pendingReady.push(dbAddr)
-      pendingLoad.push(dbAddr)
+      pendingOpens.push(dbID)
+      pendingReady.push(dbID)
+      pendingLoad.push(dbID)
 
       if (isDefined(params.accessController)) {
         params.accessController = handleWeb3(params.accessController)
@@ -105,9 +105,9 @@ class DBManager {
 
       const errorHandler = (err) => {
         console.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
-        removeItem(pendingOpens, dbAddr)
-        removeItem(pendingReady, dbAddr)
-        removeItem(pendingLoad, dbAddr)
+        removeItem(pendingOpens, dbID)
+        removeItem(pendingReady, dbID)
+        removeItem(pendingLoad, dbID)
       }
 
       const dbOpen = orbitDB.open(dbn, params)
@@ -120,11 +120,11 @@ class DBManager {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
             }
-            removeItem(pendingReady, dbAddr)
+            removeItem(pendingReady, dbID)
           })
           logger.debug('db.load()')
           await db.load()
-          removeItem(pendingLoad, dbAddr)
+          removeItem(pendingLoad, dbID)
         } catch (err) {
           errorHandler(err)
         }
@@ -133,7 +133,7 @@ class DBManager {
       if (awaitOpen) {
         try {
           const db = await dbOpen
-          removeItem(pendingOpens, dbAddr)
+          removeItem(pendingOpens, dbID)
           const doLoad = ensureLoad()
           if (awaitLoad) await doLoad
           return db
