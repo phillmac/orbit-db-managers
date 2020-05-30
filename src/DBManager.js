@@ -192,15 +192,18 @@ class DBManager {
       const write = dbWrite(db)
       const dbPeers = (typeof peerMan.getPeers === 'function' && peerMan.getPeers(db)) || []
       const oplog = db.oplog || db._oplog
+      const replicator = db.replicator || db._replicator
+      const dbId = db.address.toString()
       return {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        ready: !(pendingReady.includes(db.address.toString())),
-        loaded: !(pendingLoad.includes(db.address.toString())),
+        ready: !(pendingReady.includes(dbId)),
+        loaded: !(pendingLoad.includes(dbId)),
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
+        replicationQueue: replicator? replicator._queue : 'undefined',
         options: db.options ? {
           create: db.options.create,
           indexBy: db.options.indexBy,
