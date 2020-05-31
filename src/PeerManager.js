@@ -36,54 +36,56 @@ const MakeQuerablePromise = (promise) => {
 }
 
 class PeerManager {
-  constructor (ipfs, orbitDB, options = {}) {
-    if (!isDefined(options.PeerId)) {
-      throw new Error('options.PeerId is a required argument.')
+  constructor ({ ipfs, orbitDB, PeerId, PeerInfo, multiaddr, PeerStore, EventEmitter, options = {} }) {
+    if (!isDefined(PeerId)) {
+      throw new Error('PeerId is a required argument.')
     }
-    if (!isDefined(options.PeerInfo)) {
-      throw new Error('options.PeerInfo is a required argument.')
+    if (!isDefined(PeerInfo)) {
+      throw new Error('PeerInfo is a required argument.')
     }
-    if (!isDefined(options.multiaddr)) {
-      throw new Error('options.multiaddr is a required argument.')
+    if (!isDefined(multiaddr)) {
+      throw new Error('multiaddr is a required argument.')
     }
-    if (!isDefined(options.PeerStore)) {
-      throw new Error('options.PeerStore is a required argument.')
+    if (!isDefined(PeerStore)) {
+      throw new Error('PeerStore is a required argument.')
     }
-
-    if (!isDefined(options.EventEmitter)) {
-      throw new Error('options.EventEmitter is a required argument.')
-    }
-
-    if (typeof options.PeerId !== 'function') {
-      throw new Error('options.PeerId must be callable')
-    }
-    if (typeof options.PeerInfo !== 'function') {
-      throw new Error('options.PeerInfo must be callable')
-    }
-    if (typeof options.multiaddr !== 'function') {
-      throw new Error('options.multiaddr must be callable')
-    }
-    if (typeof options.EventEmitter !== 'function') {
-      throw new Error('options.EventEmitter must be callable')
+    if (!isDefined(EventEmitter)) {
+      throw new Error('EventEmitter is a required argument.')
     }
 
-    const peerManOptions = Object.assign({}, isDefined(options.peerMan) ? options.peerMan : options)
-    const PeerStore = options.PeerStore
+    if (typeof PeerId !== 'function') {
+      throw new Error('PeerId must be callable')
+    }
+    if (typeof PeerInfo !== 'function') {
+      throw new Error('PeerInfo must be callable')
+    }
+    if (typeof multiaddr !== 'function') {
+      throw new Error('multiaddr must be callable')
+    }
+    if (typeof EventEmitter !== 'function') {
+      throw new Error('EventEmitter must be callable')
+    }
+
+    const findOptionValue = (optName, def) => {
+      if (isDefined(options.peerMan) && isDefined(options.peerMan[optName])) return options.peerMan[optName]
+      if (isDefined(options[optName])) return options[optName]
+      return def
+    }
+
     const dbPeers = {}
     const peerSearches = {}
     const peersList = typeof PeerStore === 'function' ? new PeerStore() : PeerStore
-    const PeerId = options.PeerId
-    const PeerInfo = options.PeerInfo
-    const multiaddr = options.multiaddr
-
-    const logger = Object.assign({
-      debug: function () {},
-      info: function () {},
-      warn: function () {},
-      error: function () {}
-    },
-    options.logger,
-    peerManOptions.logger
+    const Logger = findOptionValue('logger')
+    const trackPeers = findOptionValue('trackPeers', false)
+    const logger = (
+      typeof Logger.create === 'function' ? Logger.create('peer-manager', { color: Logger.Colors.Green }) : Object.assign({
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {}
+      },
+      Logger
+      )
     )
 
     const getPeerId = (peer) => {
@@ -128,10 +130,10 @@ class PeerManager {
 
     this.announceDB = announceDB
 
-    if (peerManOptions.announceDBs) {
+    if (findOptionValue('announceDBs', false)) {
       setInterval(function () {
         announceDBs(orbitDB.stores)
-      }, peerManOptions.announceInterval || 1800000)
+      }, findOptionValue('announceInterval', 1800000))
     }
 
     const searchDetails = (searchID) => {
@@ -302,7 +304,7 @@ class PeerManager {
         }
       }
       logger.info(`Finding peers for ${db.id}`)
-      const customFindProvs = opts.CustomFindProvs || peerManOptions.CustomFindProvs
+      const customFindProvs = opts.CustomFindProvs || findOptionValue('CustomFindProvs')
       if (customFindProvs) {
         logger.debug('Using custom findProvs')
         search = customFindProvs(db)

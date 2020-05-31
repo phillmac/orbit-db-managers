@@ -8,24 +8,32 @@ function removeItem (array, item) {
 }
 
 class DBManager {
-  constructor (orbitDB, peerMan, options) {
+  constructor ({ orbitDB, peerMan, options }) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
-    const dbManOptions = Object.assign({}, isDefined(options.dbMan) ? options.dbMan : options)
+
+    const findOptionValue = (optName, def) => {
+      if (isDefined(options.dbMan) && isDefined(options.dbMan[optName])) return options.dbMan[optName]
+      if (isDefined(options[optName])) return options[optName]
+      return def
+    }
+
     const OrbitDB = orbitDB.constructor
+    const Logger = findOptionValue('logger')
 
     peerMan = Object.assign({
       getPeers: function () {},
       attachDB: function () {}
     }, peerMan)
 
-    const logger = Object.assign({
-      debug: function () {},
-      info: function () {},
-      warn: function () {},
-      error: function () {}
-    },
-    options.logger,
-    dbManOptions.logger
+    const logger = (
+      typeof Logger.create === 'function' ? Logger.create('db-manager', { color: Logger.Colors.Green }) : Object.assign({
+        debug: function () {},
+        info: function () {},
+        warn: function () {},
+        error: function () {}
+      },
+      Logger
+      )
     )
 
     this.events = orbitDB.events
@@ -53,8 +61,9 @@ class DBManager {
 
     const handleWeb3 = (accessController) => {
       if (isDefined(accessController.web3)) {
-        if (isDefined(dbManOptions.web3)) {
-          accessController.web3 = new (dbManOptions.web3 || options.web3)(accessController.web3)
+        const web3 = findOptionValue('web3')
+        if (isDefined(web3)) {
+          accessController.web3 = new (web3)(accessController.web3)
         } else {
           logger.warn('Web3 access controller params ignored')
           delete accessController.web3
