@@ -8,7 +8,7 @@ function removeItem (array, item) {
 }
 
 class DBManager {
-  constructor ({ orbitDB, peerMan, options }) {
+  constructor ({ orbitDB, peerMan, Logger, Web3, options }) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
 
     const findOptionValue = (optName, def) => {
@@ -18,7 +18,6 @@ class DBManager {
     }
 
     const OrbitDB = orbitDB.constructor
-    const Logger = findOptionValue('logger')
 
     peerMan = Object.assign({
       getPeers: function () {},
@@ -61,9 +60,8 @@ class DBManager {
 
     const handleWeb3 = (accessController) => {
       if (isDefined(accessController.web3)) {
-        const web3 = findOptionValue('web3')
-        if (isDefined(web3)) {
-          accessController.web3 = new (web3)(accessController.web3)
+        if (isDefined(Web3)) {
+          accessController.web3 = new Web3(accessController.web3)
         } else {
           logger.warn('Web3 access controller params ignored')
           delete accessController.web3
@@ -212,7 +210,7 @@ class DBManager {
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
-        replicationQueue: replicator ? replicator._queue : 'undefined',
+        replicationQueue: replicator ? { buffer: replicator._buffer, queue: replicator._queue } : 'undefined',
         options: db.options ? {
           create: db.options.create,
           indexBy: db.options.indexBy,

@@ -36,7 +36,7 @@ const MakeQuerablePromise = (promise) => {
 }
 
 class PeerManager {
-  constructor ({ ipfs, orbitDB, PeerId, PeerInfo, multiaddr, PeerStore, EventEmitter, options = {} }) {
+  constructor ({ ipfs, orbitDB, PeerId, PeerInfo, multiaddr, PeerStore, EventEmitter, Logger, options = {} }) {
     if (!isDefined(PeerId)) {
       throw new Error('PeerId is a required argument.')
     }
@@ -75,7 +75,6 @@ class PeerManager {
     const dbPeers = {}
     const peerSearches = {}
     const peersList = typeof PeerStore === 'function' ? new PeerStore() : PeerStore
-    const Logger = findOptionValue('logger')
     const trackPeers = findOptionValue('trackPeers', false)
     const logger = (
       typeof Logger.create === 'function' ? Logger.create('peer-manager', { color: Logger.Colors.Green }) : Object.assign({
@@ -387,13 +386,16 @@ class PeerManager {
     this.addPeer = addPeer
 
     this.attachDB = (db) => {
-      if (!(db.id in dbPeers)) dbPeers[db.id] = []
-      db.events.on('peer', async function (peerID) {
-        const peer = await swarmFindPeer(peerID)
-        logger.debug(`Resolved peer from event ${getPeerId(peer)}`)
-        addPeer(db, peer)
-      })
-      logger.debug('Attached db')
+      if (trackPeers) {
+        if (!(db.id in dbPeers)) dbPeers[db.id] = []
+        db.events.on('peer', async function (peerID) {
+          const peer = await swarmFindPeer(peerID)
+          logger.debug(`Resolved peer from event ${getPeerId(peer)}`)
+          addPeer(db, peer)
+        })
+        logger.debug(`Tracking peers for ${db.id}`)
+      }
+      logger.debug(`Attached db ${db.id}`)
     }
   }
 }
