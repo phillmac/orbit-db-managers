@@ -27,7 +27,6 @@ class DBManager {
     const loadQueue = new PQueue({ concurrency: 1 })
     const syncQueue = new PQueue({ concurrency: 1 })
 
-
     const logger = (
       typeof Logger.create === 'function' ? Logger.create('db-manager', { color: Logger.Colors.Green }) : Object.assign({
         debug: function () {},
@@ -65,20 +64,30 @@ class DBManager {
     const loadDB = (db) => {
       return loadQueue.add(async () => {
         logger.debug(`Loading db ${db.id}`)
-        await db.load()
+        try {
+            await db.load()
+
+        } catch (err) {
+            logger.error('Error loading db', err)
+        }
         logger.debug(`Finished loading db ${db.id}`)
       })
     }
 
     this.loadDB = (db) => {
-      if(pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
+      if (pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
       return loadDB(db)
     }
 
     this.syncDB = (db, heads) => {
-        return syncQueue.add(async () => {
+      return syncQueue.add(async () => {
         logger.debug(`syncing db ${db.id} with heads ${heads}`)
-        await db.sync(heads)
+        try {
+            await db.sync(heads)
+
+        } catch (err) {
+            logger.error('Error syncing db', err)
+        }
         logger.debug(`Finished syncing db ${db.id}`)
       })
     }
