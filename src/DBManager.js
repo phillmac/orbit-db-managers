@@ -43,9 +43,9 @@ class DBManager {
     const pendingReady = new Set()
     const pendingLoad = new Set()
 
-    this.pendingOpens = () => Array.from(pendingOpens.entries())
-    this.pendingReady = () => Array.from(pendingReady.entries())
-    this.pendingLoad = () => Array.from(pendingLoad.entries())
+    this.pendingOpens = () => Array.from(pendingOpens.keys())
+    this.pendingReady = () => Array.from(pendingReady.keys())
+    this.pendingLoad = () => Array.from(pendingLoad.keys())
 
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
