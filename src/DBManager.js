@@ -65,7 +65,7 @@ class DBManager {
       return loadQueue.add(async () => {
         const mostRecent = {}
         logger.debug(`Loading db ${db.id}`)
-        db.on('load.progress.start', (hash, entry, progress, max) => {
+        db.events.on('load.progress.start', (hash, entry, progress, max) => {
           Object.assign(mostRecent, { hash, entry, progress, max })
         })
         try {
