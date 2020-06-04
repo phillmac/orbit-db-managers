@@ -8,7 +8,7 @@ function removeItem (array, item) {
 }
 
 class DBManager {
-  constructor ({ orbitDB, peerMan, Logger, Web3, options }) {
+  constructor ({ orbitDB, peerMan, Logger, Web3, PQueue, options }) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
 
     const findOptionValue = (optName, def) => {
@@ -23,6 +23,8 @@ class DBManager {
       getPeers: function () {},
       attachDB: function () {}
     }, peerMan)
+
+    const loadQueue = new PQueue({ concurrency: 1 })
 
     const logger = (
       typeof Logger.create === 'function' ? Logger.create('db-manager', { color: Logger.Colors.Green }) : Object.assign({
@@ -56,6 +58,14 @@ class DBManager {
           return db
         }
       }
+    }
+
+    const loadDB = (db) => {
+      if(pendingLoad.includes(db.id)) throw new Error(`Db ${db.id} already pending`)
+      return loadQueue.add(() => {
+        logger.debug(`Loading db ${db.id}`)
+        return db.load()
+      })
     }
 
     const handleWeb3 = (accessController) => {
@@ -129,8 +139,7 @@ class DBManager {
             }
             removeItem(pendingReady, dbID)
           })
-          logger.debug('db.load()')
-          await db.load()
+          await loadDB(db)
           removeItem(pendingLoad, dbID)
         } catch (err) {
           errorHandler(err)
