@@ -165,6 +165,7 @@ class DBManager {
         logger.debug('ensureLoad()')
         try {
           const db = await dbOpen
+          pendingOpens.delete(dbID)
           db.events.once('ready', () => {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
