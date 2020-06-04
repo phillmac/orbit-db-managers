@@ -64,14 +64,19 @@ class DBManager {
     const loadDB = (db) => {
       return loadQueue.add(async () => {
         const mostRecent = {}
+        const last = {}
         logger.debug(`Loading db ${db.id}`)
         db.events.on('load.progress.start', (hash, entry, progress, max) => {
           Object.assign(mostRecent, { hash, entry, progress, max })
         })
+
+        db.events.on('load.progress', (hash, entry, progress, max) => {
+          Object.assign(last, { hash, entry, progress, max })
+        })
         try {
           await db.load()
         } catch (err) {
-          logger.debug({ mostRecent })
+          logger.debug({ mostRecent, last })
           logger.error('Error loading db', err)
         }
         logger.debug(`Finished loading db ${db.id}`)
