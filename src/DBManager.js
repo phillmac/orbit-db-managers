@@ -61,14 +61,16 @@ class DBManager {
     }
 
     const loadDB = (db) => {
-      if(pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
       return loadQueue.add(() => {
         logger.debug(`Loading db ${db.id}`)
         return db.load()
       })
     }
 
-    this.loadDB = loadDB
+    this.loadDB = (db) => {
+      if(pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
+      return loadDB(db)
+    }
 
     const handleWeb3 = (accessController) => {
       if (isDefined(accessController.web3)) {
