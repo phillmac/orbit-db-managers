@@ -61,9 +61,10 @@ class DBManager {
     }
 
     const loadDB = (db) => {
-      return loadQueue.add(() => {
+      return loadQueue.add(async () => {
         logger.debug(`Loading db ${db.id}`)
-        return db.load()
+        await db.load()
+        logger.debug(`Finished loading db ${db.id}`)
       })
     }
 
