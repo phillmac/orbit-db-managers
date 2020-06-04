@@ -39,13 +39,13 @@ class DBManager {
 
     this.events = orbitDB.events
 
-    const pendingOpens = []
-    const pendingReady = []
-    const pendingLoad = []
+    const pendingOpens = Set()
+    const pendingReady = Set()
+    const pendingLoad = Set()
 
-    this.pendingOpens = () => [...pendingOpens]
-    this.pendingReady = () => [...pendingReady]
-    this.pendingLoad = () => [...pendingLoad]
+    this.pendingOpens = () => Array.from(pendingOpens.entries())
+    this.pendingReady = () => Array.from(pendingReady.entries())
+    this.pendingLoad = () => Array.from(pendingLoad.entries())
 
     const findDB = (dbn) => {
       if (dbn in orbitDB.stores) return orbitDB.stores[dbn]
@@ -61,12 +61,14 @@ class DBManager {
     }
 
     const loadDB = (db) => {
-      if(pendingLoad.includes(db.id)) throw new Error(`Db ${db.id} already pending`)
+      if(pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
       return loadQueue.add(() => {
         logger.debug(`Loading db ${db.id}`)
         return db.load()
       })
     }
+
+    this.loadDB = loadDB
 
     const handleWeb3 = (accessController) => {
       if (isDefined(accessController.web3)) {
@@ -105,16 +107,16 @@ class DBManager {
       const dbAddr = OrbitDB.isValidAddress(dbn) ? OrbitDB.parseAddress(dbn) : (await orbitDB.determineAddress(dbn, params.type, params))
       const dbID = dbAddr.toString()
       if (
-        (pendingOpens.includes(dbID)) ||
-        (pendingReady.includes(dbID)) ||
-        (pendingLoad.includes(dbID))
+        (pendingOpens.has(dbID)) ||
+        (pendingReady.has(dbID)) ||
+        (pendingLoad.has(dbID))
       ) {
         throw new Error(`Db ${dbID} already pending`)
       }
 
-      pendingOpens.push(dbID)
-      pendingReady.push(dbID)
-      pendingLoad.push(dbID)
+      pendingOpens.add(dbID)
+      pendingReady.add(dbID)
+      pendingLoad.add(dbID)
 
       if (isDefined(params.accessController)) {
         params.accessController = handleWeb3(params.accessController)
@@ -122,9 +124,9 @@ class DBManager {
 
       const errorHandler = (err) => {
         logger.warn(`Failed to open ${JSON.stringify(params)}: ${err}`)
-        removeItem(pendingOpens, dbID)
-        removeItem(pendingReady, dbID)
-        removeItem(pendingLoad, dbID)
+        pendingOpens.delete(dbID)
+        pendingReady.delete(dbID)
+        pendingLoad.delete(dbID)
       }
 
       const dbOpen = orbitDB.open(dbn, params)
@@ -137,10 +139,10 @@ class DBManager {
             if (typeof peerMan.attachDB === 'function') {
               peerMan.attachDB(db)
             }
-            removeItem(pendingReady, dbID)
+            pendingReady.delete(dbID)
           })
           await loadDB(db)
-          removeItem(pendingLoad, dbID)
+          pendingLoad.delete(dbID)
         } catch (err) {
           errorHandler(err)
         }
@@ -149,7 +151,7 @@ class DBManager {
       if (awaitOpen) {
         try {
           const db = await dbOpen
-          removeItem(pendingOpens, dbID)
+          pendingOpens.delete(dbID)
           const doLoad = ensureLoad()
           if (awaitLoad) await doLoad
           return db
@@ -214,8 +216,8 @@ class DBManager {
         address: db.address,
         dbname: db.dbname,
         id: db.id,
-        ready: !(pendingReady.includes(dbId)),
-        loaded: !(pendingLoad.includes(dbId)),
+        ready: !(pendingReady.has(dbId)),
+        loaded: !(pendingLoad.has(dbId)),
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
