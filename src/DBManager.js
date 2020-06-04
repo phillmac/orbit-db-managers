@@ -25,6 +25,8 @@ class DBManager {
     }, peerMan)
 
     const loadQueue = new PQueue({ concurrency: 1 })
+    const syncQueue = new PQueue({ concurrency: 1 })
+
 
     const logger = (
       typeof Logger.create === 'function' ? Logger.create('db-manager', { color: Logger.Colors.Green }) : Object.assign({
@@ -71,6 +73,14 @@ class DBManager {
     this.loadDB = (db) => {
       if(pendingLoad.has(db.id)) throw new Error(`Db ${db.id} already pending`)
       return loadDB(db)
+    }
+
+    this.syncDB = (db, heads) => {
+        return syncQueue.add(async () => {
+        logger.debug(`syncing db ${db.id} with heads ${heads}`)
+        await db.sync(heads)
+        logger.debug(`Finished syncing db ${db.id}`)
+      })
     }
 
     const handleWeb3 = (accessController) => {
