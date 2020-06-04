@@ -63,10 +63,15 @@ class DBManager {
 
     const loadDB = (db) => {
       return loadQueue.add(async () => {
+        const mostRecent = {}
         logger.debug(`Loading db ${db.id}`)
+        db.on('load.progress.start', (hash, entry, progress, max) => {
+          Object.assign(mostRecent, { hash, entry, progress, max })
+        })
         try {
           await db.load()
         } catch (err) {
+          logger.debug({ mostRecent })
           logger.error('Error loading db', err)
         }
         logger.debug(`Finished loading db ${db.id}`)
