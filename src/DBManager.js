@@ -39,9 +39,9 @@ class DBManager {
 
     this.events = orbitDB.events
 
-    const pendingOpens = Set()
-    const pendingReady = Set()
-    const pendingLoad = Set()
+    const pendingOpens = new Set()
+    const pendingReady = new Set()
+    const pendingLoad = new Set()
 
     this.pendingOpens = () => Array.from(pendingOpens.entries())
     this.pendingReady = () => Array.from(pendingReady.entries())
