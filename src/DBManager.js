@@ -65,10 +65,9 @@ class DBManager {
       return loadQueue.add(async () => {
         logger.debug(`Loading db ${db.id}`)
         try {
-            await db.load()
-
+          await db.load()
         } catch (err) {
-            logger.error('Error loading db', err)
+          logger.error('Error loading db', err)
         }
         logger.debug(`Finished loading db ${db.id}`)
       })
@@ -83,10 +82,9 @@ class DBManager {
       return syncQueue.add(async () => {
         logger.debug(`syncing db ${db.id} with heads ${heads}`)
         try {
-            await db.sync(heads)
-
+          await db.sync(heads)
         } catch (err) {
-            logger.error('Error syncing db', err)
+          logger.error('Error syncing db', err)
         }
         logger.debug(`Finished syncing db ${db.id}`)
       })
