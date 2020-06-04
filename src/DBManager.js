@@ -90,7 +90,7 @@ class DBManager {
 
     this.syncDB = (db, heads) => {
       return syncQueue.add(async () => {
-        logger.debug(`syncing db ${db.id} with heads ${heads}`)
+        logger.debug(`syncing db ${db.id} with heads ${JSON.stringify(heads, null, 2)}`)
         try {
           await db.sync(heads)
         } catch (err) {
