@@ -255,7 +255,7 @@ class DBManager {
         replicationQueue: replicator ? {
             buffer: replicator._buffer,
             queue: replicator._queue,
-            fetching: replicator._fetching
+            fetching: Object.keys(replicator._fetching).length
         } : 'undefined',
         options: db.options ? {
           create: db.options.create,
