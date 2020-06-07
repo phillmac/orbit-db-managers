@@ -8,7 +8,7 @@ function removeItem (array, item) {
 }
 
 class DBManager {
-  constructor ({ orbitDB, peerMan, Logger, Web3, PQueue, options }) {
+  constructor ({ orbitDB, peerMan, Logger, Web3, PQueue, pMap, options }) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
 
     const findOptionValue = (optName, def) => {
@@ -92,7 +92,7 @@ class DBManager {
       return syncQueue.add(async () => {
         logger.debug(`syncing db ${db.id} with heads ${JSON.stringify(heads, null, 2)}`)
         try {
-          await db.sync(heads)
+          await db.sync(await pMap(heads, (h) => ipfs.dag.get(h), { concurrency: 1 }))
         } catch (err) {
           logger.error('Error syncing db', err)
         }
@@ -252,7 +252,11 @@ class DBManager {
         oplog: {
           length: oplog ? oplog.length : 'undefined'
         },
-        replicationQueue: replicator ? { buffer: replicator._buffer, queue: replicator._queue } : 'undefined',
+        replicationQueue: replicator ? {
+            buffer: replicator._buffer,
+            queue: replicator._queue,
+            fetching: replicator._fetching
+        } : 'undefined',
         options: db.options ? {
           create: db.options.create,
           indexBy: db.options.indexBy,
