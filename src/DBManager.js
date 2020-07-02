@@ -1,21 +1,8 @@
 const isDefined = (arg) => arg !== undefined && arg !== null
 
-function removeItem (array, item) {
-  const index = array.indexOf(item)
-  if (index > -1) {
-    return array.splice(index, 1)
-  }
-}
-
 class DBManager {
-  constructor ({ orbitDB, peerMan, Logger, Web3, PQueue, pMap, options }) {
+  constructor ({ ipfs, orbitDB, peerMan, Logger, Web3, PQueue, pMap, options }) {
     if (!isDefined(orbitDB)) { throw new Error('orbitDB is a required argument.') }
-
-    const findOptionValue = (optName, def) => {
-      if (isDefined(options.dbMan) && isDefined(options.dbMan[optName])) return options.dbMan[optName]
-      if (isDefined(options[optName])) return options[optName]
-      return def
-    }
 
     const OrbitDB = orbitDB.constructor
 
@@ -253,9 +240,9 @@ class DBManager {
           length: oplog ? oplog.length : 'undefined'
         },
         replicationQueue: replicator ? {
-            buffer: replicator._buffer,
-            queue: replicator._queue,
-            fetching: Object.keys(replicator._fetching).length
+          buffer: replicator._buffer,
+          queue: replicator._queue,
+          fetching: Object.keys(replicator._fetching).length
         } : 'undefined',
         options: db.options ? {
           create: db.options.create,

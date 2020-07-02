@@ -7,7 +7,9 @@ const multiaddr = require('multiaddr')
 const { default: PQueue } = require('p-queue')
 const PeerStore = require('libp2p/src/peer-store')
 const { EventEmitter } = require('events')
-const { DBManager, PeerManager, SessionManager } = require('orbit-db-managers')
+const PeerManager = require('./PeerManager.js')
+const DBManager = require('./DBManager.js')
+const SessionManager = require('./SessionManager.js')
 
 const deps = {
   EventEmitter,
@@ -26,7 +28,7 @@ const getManagers = async (ipfs, options = {}) => {
   return {
     orbitDB,
     peerMan,
-    dbMan: new DBManager({ orbitDB, peerMan, ...deps, options }),
+    dbMan: new DBManager({ ipfs, orbitDB, peerMan, ...deps, options }),
     sessionMan: new SessionManager()
   }
 }
