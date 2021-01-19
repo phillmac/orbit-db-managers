@@ -15,14 +15,21 @@ const deps = {
   Logger,
   multiaddr,
   PeerId,
-  PeerStore,
   pMap,
   PQueue
 }
 
+const getPeerStore = async (ipfs) => {
+  if (ipfs.libp2p.peerStore) {
+    return ipfs.libp2p.peerStore
+  }
+  return new PeerStore({ peerID: await ipfs.id() })
+}
+
 const getManagers = async (ipfs, options = {}) => {
   const orbitDB = await OrbitDB.createInstance(ipfs, options.orbitDB)
-  const peerMan = new PeerManager({ ipfs, orbitDB, ...deps, options })
+  const peerStore = await getPeerStore(ipfs)
+  const peerMan = new PeerManager({ ipfs, orbitDB, peerStore, ...deps, options })
   return {
     orbitDB,
     peerMan,

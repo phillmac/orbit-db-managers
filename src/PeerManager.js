@@ -36,15 +36,15 @@ const MakeQuerablePromise = (promise) => {
 }
 
 class PeerManager {
-  constructor ({ ipfs, orbitDB, PeerId, multiaddr, PeerStore, EventEmitter, Logger, options = {} }) {
+  constructor ({ ipfs, orbitDB, peerStore, PeerId, multiaddr, EventEmitter, Logger, options = {} }) {
     if (!isDefined(PeerId)) {
       throw new Error('PeerId is a required argument.')
     }
     if (!isDefined(multiaddr)) {
       throw new Error('multiaddr is a required argument.')
     }
-    if (!isDefined(PeerStore)) {
-      throw new Error('PeerStore is a required argument.')
+    if (!isDefined(peerStore)) {
+      throw new Error('peerStore is a required argument.')
     }
     if (!isDefined(EventEmitter)) {
       throw new Error('EventEmitter is a required argument.')
@@ -68,7 +68,6 @@ class PeerManager {
 
     const dbPeers = {}
     const peerSearches = {}
-    const peersList = typeof PeerStore === 'function' ? new PeerStore() : PeerStore
     const trackPeers = findOptionValue('trackPeers', false)
     const logger = (
       typeof Logger.create === 'function' ? Logger.create('peer-manager', { color: Logger.Colors.Green }) : Object.assign({
@@ -179,27 +178,27 @@ class PeerManager {
 
     // this.resolvePeerId = resolvePeerId
 
-    const createPeerInfo = (details) => {
-      if (PeerInfo.isPeerInfo(details)) return details // Short circuit
-      let peerInfo
-      if (PeerId.isPeerId(details)) return new PeerInfo(details)
-      if (typeof details.ID === 'string') {
-        peerInfo = new PeerInfo(PeerId.createFromB58String(details.ID))
-      } else if (typeof details.id === 'string') {
-        peerInfo = new PeerInfo(PeerId.createFromB58String(details.id))
-      } else {
-        throw new Error('Unhandled createPeerInfo', details) // Peer id property is something other then 'ID'
-      }
-      const peerAddrs = details.Addrs || details.addrs
-      if (isDefined(peerAddrs)) {
-        for (const addr of peerAddrs) {
-          peerInfo.multiaddrs.add(multiaddr(addr))
-        }
-      }
-      return peerInfo
-    }
+    // const createPeerInfo = (details) => {
+    //   if (PeerInfo.isPeerInfo(details)) return details // Short circuit
+    //   let peerInfo
+    //   if (PeerId.isPeerId(details)) return new PeerInfo(details)
+    //   if (typeof details.ID === 'string') {
+    //     peerInfo = new PeerInfo(PeerId.createFromB58String(details.ID))
+    //   } else if (typeof details.id === 'string') {
+    //     peerInfo = new PeerInfo(PeerId.createFromB58String(details.id))
+    //   } else {
+    //     throw new Error('Unhandled createPeerInfo', details) // Peer id property is something other then 'ID'
+    //   }
+    //   const peerAddrs = details.Addrs || details.addrs
+    //   if (isDefined(peerAddrs)) {
+    //     for (const addr of peerAddrs) {
+    //       peerInfo.multiaddrs.add(multiaddr(addr))
+    //     }
+    //   }
+    //   return peerInfo
+    // }
 
-    this.createPeerInfo = createPeerInfo
+    // this.createPeerInfo = createPeerInfo
 
     const dhtFindPeer = (peerIDStr) => {
       if (peerIDStr in peerSearches) {
@@ -213,7 +212,7 @@ class PeerManager {
       const search = ipfs.dht
         .findPeer(peerIDStr)
         .then(result => {
-          peersList.put(result)
+          //peerStore.put(result)
           delete peerSearches[peerIDStr]
           return result
         })
@@ -251,7 +250,7 @@ class PeerManager {
             const findProvs = ipfs.dht.findProvs(hash, opts || {})
             const peers = []
             const handlePeer = (p) => {
-              const peer = createPeerInfo(p)
+              const peer = peerStore.get(p)
               peers.push(peer)
               searchEvents.emit('peer', peer)
             }
@@ -339,7 +338,7 @@ class PeerManager {
     }
 
     const mapPeers = (peers) => peers.map(p => {
-      const peer = peersList.get(getPeerId(p))
+      const peer = peerStore.get(getPeerId(p))
       if (peer) {
         return {
           id: getPeerId(peer),
@@ -354,7 +353,7 @@ class PeerManager {
     }
 
     this.allPeers = () => {
-      return Object.values(peersList.getAll()).map(p => {
+      return Object.values(peerStore.getAll()).map(p => {
         return {
           id: getPeerId(p),
           multiaddrs: p.multiaddrs.toArray().map(m => m.toString())
@@ -371,7 +370,7 @@ class PeerManager {
 
     const addPeer = (db, peer) => {
       if (!PeerInfo.isPeerInfo(peer)) peer = createPeerInfo(peer)
-      peersList.put(peer)
+      peerStore.put(peer)
       if (!(db.id in dbPeers)) dbPeers[db.id] = []
       dbPeers[db.id].push(getPeerId(peer))
       return peer
