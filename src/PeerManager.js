@@ -36,7 +36,7 @@ const MakeQuerablePromise = (promise) => {
 }
 
 class PeerManager {
-  constructor ({ ipfs, orbitDB, PeerId, PeerInfo, multiaddr, PeerStore, EventEmitter, Logger, options = {} }) {
+  constructor ({ ipfs, orbitDB, PeerId, multiaddr, PeerStore, EventEmitter, Logger, options = {} }) {
     if (!isDefined(PeerId)) {
       throw new Error('PeerId is a required argument.')
     }
