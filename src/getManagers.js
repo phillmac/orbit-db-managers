@@ -2,7 +2,6 @@ const pMap = require('p-map')
 const PeerId = require('peer-id')
 const OrbitDB = require('orbit-db')
 const Logger = require('logplease')
-const PeerInfo = require('peer-info')
 const multiaddr = require('multiaddr')
 const { default: PQueue } = require('p-queue')
 const PeerStore = require('libp2p/src/peer-store')
@@ -16,7 +15,6 @@ const deps = {
   Logger,
   multiaddr,
   PeerId,
-  PeerInfo,
   PeerStore,
   pMap,
   PQueue

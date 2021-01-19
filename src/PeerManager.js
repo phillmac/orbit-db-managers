@@ -40,9 +40,6 @@ class PeerManager {
     if (!isDefined(PeerId)) {
       throw new Error('PeerId is a required argument.')
     }
-    if (!isDefined(PeerInfo)) {
-      throw new Error('PeerInfo is a required argument.')
-    }
     if (!isDefined(multiaddr)) {
       throw new Error('multiaddr is a required argument.')
     }
@@ -55,9 +52,6 @@ class PeerManager {
 
     if (typeof PeerId !== 'function') {
       throw new Error('PeerId must be callable')
-    }
-    if (typeof PeerInfo !== 'function') {
-      throw new Error('PeerInfo must be callable')
     }
     if (typeof multiaddr !== 'function') {
       throw new Error('multiaddr must be callable')
@@ -155,35 +149,35 @@ class PeerManager {
       }
     }
 
-    const resolvePeerId = async (peerID) => {
-      let result
-      if (PeerId.isPeerId(peerID)) peerID = peerID.toB58String()
-      if (peersList.has(peerID)) return result // Short circuit
+    // const resolvePeerId = async (peerID) => {
+    //   let result
+    //   if (PeerId.isPeerId(peerID)) peerID = peerID.toB58String()
+    //   if (peersList.has(peerID)) return result // Short circuit
 
-      const resolved = [
-        MakeQuerablePromise(swarmFindPeer(peerID).then(function (peer) {
-          peersList.put(peer)
-          return peer
-        })),
-        MakeQuerablePromise(dhtFindPeer(peerID).search)
-      ]
+    //   const resolved = [
+    //     MakeQuerablePromise(swarmFindPeer(peerID).then(function (peer) {
+    //       peersList.put(peer)
+    //       return peer
+    //     })),
+    //     MakeQuerablePromise(dhtFindPeer(peerID).search)
+    //   ]
 
-      while ((!result) && resolved.some(p => p.isPending())) {
-        try {
-          result = await Promise.race(resolved.filter(p => p.isPending()))
-        } catch (err) {
-          logger.warn(err)
-        }
-      }
+    //   while ((!result) && resolved.some(p => p.isPending())) {
+    //     try {
+    //       result = await Promise.race(resolved.filter(p => p.isPending()))
+    //     } catch (err) {
+    //       logger.warn(err)
+    //     }
+    //   }
 
-      if (result) {
-        const peerInfo = createPeerInfo(result)
-        return peerInfo
-      }
-      throw new Error(`Unable to resolve peer ${peerID}`)
-    }
+    //   if (result) {
+    //     const peerInfo = createPeerInfo(result)
+    //     return peerInfo
+    //   }
+    //   throw new Error(`Unable to resolve peer ${peerID}`)
+    // }
 
-    this.resolvePeerId = resolvePeerId
+    // this.resolvePeerId = resolvePeerId
 
     const createPeerInfo = (details) => {
       if (PeerInfo.isPeerInfo(details)) return details // Short circuit
